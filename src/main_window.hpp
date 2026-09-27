@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "player.hpp"
 #include "settings.hpp"
 
 #include <gtkmm.h>
@@ -18,7 +19,14 @@ class MainWindow : public Gtk::Window {
   void load_css();
   void build_menu();
   void apply_band();
+  void fill_memory();
+  void refresh_face();
+  void play_current();
+  const Station* current() const;
   void set_status(const Glib::ustring& text);
+  void on_player_state(Player::State state);
+  void on_player_error(const Glib::ustring& msg);
+  void on_player_title(const Glib::ustring& title);
   void on_quit();
   void on_about();
   void on_station_add();
@@ -37,7 +45,9 @@ class MainWindow : public Gtk::Window {
                           Gdk::ModifierType mods = Gdk::ModifierType(0));
 
   Settings settings_;
+  Player player_;
   Glib::RefPtr<Gtk::AccelGroup> accel_;
+  sigc::connection memory_changed_;
 
   Gtk::Box root_{Gtk::ORIENTATION_VERTICAL, 0};
   Gtk::MenuBar menubar_;

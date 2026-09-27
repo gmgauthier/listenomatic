@@ -1,12 +1,12 @@
 # Listen-O-Matic backlog
 
-Current: **M0** (unreleased). Last updated: 2026-09-27.
+Current: **M1** (unreleased). Last updated: 2026-09-27.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## High Priority
 
-- M1 — one live stream (playbin, Add by URL, Play / Stop, volume, LCD name)
+- Finish M1 — playbin, Add by URL, Play / Stop, volume, LCD name
 
 ## Low Priority
 

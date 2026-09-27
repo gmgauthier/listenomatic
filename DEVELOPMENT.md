@@ -11,7 +11,7 @@ Suite design: `lcos-projects/LISTEN-O-MATIC.md`
 
 ## Status (2026-09-27)
 
-**M0 in progress.** Window chrome. No HTTP, no GStreamer yet.
+**M1 in progress** on `feature/m1-live-stream`. M0 window is on `feature/m0-window`. First-run Memory is seeded from `data/samples.ini` (shipped sample streams, not a GoStations importer). Lunduke Journal RSS is the M4 sample show — not this slice.
 
 ## 1. Locked decisions
 
@@ -64,9 +64,9 @@ v1 is M0 through M6. Do not open download-cache, queues, or video until this set
 
 Menus, band switch, six empty presets, Memory combo, LCD well, transport stubs, About. Add Station dialog is chrome only (no fetch). Matches the Deck mockup. No HTTP. No playbin.
 
-### M1 — One live stream
+### M1 — One live stream (this slice)
 
-Add a stream URL; Play / Stop; volume into playbin; LCD shows the name. GStreamer `playbin`, audio only.
+Add a stream URL; Play / Stop; volume into playbin; LCD shows the name. GStreamer `playbin`, audio only. First-run Memory is filled from `data/samples.ini` so there is something to play. Presets stay empty until M2. Shows stay stub until M4.
 
 ### M2 — Presets + memory
 

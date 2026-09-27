@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**M0.** Window chrome. Band switch, empty presets, LCD well, transport stubs, About. No network play yet. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**M1 in progress.** M0 window plus live playbin. First-run Memory is seeded from `data/samples.ini`. Shows / presets are later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

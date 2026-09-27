@@ -4,6 +4,7 @@
 #include "about_dialog.hpp"
 #include "paths.hpp"
 
+#include <cstdlib>
 #include <iostream>
 
 namespace listenomatic {
@@ -20,6 +21,10 @@ MainWindow::MainWindow()
   add_accel_group(accel_);
 
   settings_.load();
+  player_.set_volume(settings_.volume);
+  player_.signal_state_changed().connect(sigc::mem_fun(*this, &MainWindow::on_player_state));
+  player_.signal_error().connect(sigc::mem_fun(*this, &MainWindow::on_player_error));
+  player_.signal_title().connect(sigc::mem_fun(*this, &MainWindow::on_player_title));
   load_css();
   build_menu();
 
@@ -48,10 +53,8 @@ MainWindow::MainWindow()
     presets_[static_cast<std::size_t>(i)].signal_clicked().connect([this, i]() { on_preset(i); });
     preset_row_.pack_start(presets_[static_cast<std::size_t>(i)], Gtk::PACK_EXPAND_WIDGET);
   }
-  memory_.append("(empty)");
-  memory_.set_active(0);
   memory_.set_size_request(92, 44);
-  memory_.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::on_memory));
+  memory_changed_ = memory_.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::on_memory));
   preset_row_.pack_start(memory_, Gtk::PACK_SHRINK);
   client_.pack_start(preset_row_, Gtk::PACK_SHRINK);
 
@@ -109,12 +112,14 @@ MainWindow::MainWindow()
 
   live_.signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_band_live));
   shows_.signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_band_shows));
+  fill_memory();
   if (settings_.band == Band::Shows)
     shows_.set_active(true);
   else
     live_.set_active(true);
   show_all();
   apply_band();
+  settings_.save();
 }
 
 void MainWindow::load_css()
@@ -184,14 +189,73 @@ void MainWindow::build_menu()
   menubar_.append(*help_item);
 }
 
+void MainWindow::fill_memory()
+{
+  memory_changed_.block();
+  memory_.remove_all();
+  if (settings_.live.empty()) {
+    memory_.append("-1", "(empty)");
+    memory_.set_active(0);
+  } else {
+    for (int i = 0; i < static_cast<int>(settings_.live.size()); ++i) {
+      memory_.append(Glib::ustring::compose("%1", i),
+                     settings_.live[static_cast<std::size_t>(i)].name);
+    }
+    if (settings_.current_live >= 0)
+      memory_.set_active_id(Glib::ustring::compose("%1", settings_.current_live));
+    else
+      memory_.set_active(0);
+  }
+  memory_changed_.unblock();
+}
+
+const Station* MainWindow::current() const
+{
+  if (settings_.current_live < 0 ||
+      settings_.current_live >= static_cast<int>(settings_.live.size()))
+    return nullptr;
+  return &settings_.live[static_cast<std::size_t>(settings_.current_live)];
+}
+
+void MainWindow::refresh_face()
+{
+  const bool shows = shows_.get_active();
+  const Station* st = current();
+  const bool playing = player_.state() == Player::State::Playing;
+
+  if (shows) {
+    lcd_badge_.set_text("SHOWS");
+    lcd_station_.set_text("No station");
+    lcd_now_.set_text("");
+    lcd_hint_.set_text("Shows are M4.");
+    set_status("Shows — add a podcast in M4");
+    return;
+  }
+
+  lcd_badge_.set_text(playing ? "ON AIR" : "LIVE");
+  if (!st) {
+    lcd_station_.set_text("No station");
+    lcd_now_.set_text("");
+    lcd_hint_.set_text("Station → Add… or pick Memory.");
+    set_status("No stations in memory");
+    return;
+  }
+  lcd_station_.set_text(st->name);
+  if (!playing)
+    lcd_now_.set_text("");
+  lcd_hint_.set_text("");
+  if (playing)
+    set_status("Playing");
+  else if (player_.state() == Player::State::Paused)
+    set_status("Paused");
+  else
+    set_status("Stopped");
+}
+
 void MainWindow::apply_band()
 {
   const bool shows = shows_.get_active();
   settings_.band = shows ? Band::Shows : Band::Live;
-  lcd_station_.set_text("No station");
-  lcd_now_.set_text("");
-  lcd_hint_.set_text("Station → Add… then Store on Preset.");
-  lcd_badge_.set_text(shows ? "SHOWS" : "LIVE");
   seek_.set_visible(shows);
   seek_lab_.set_visible(shows);
   if (shows) {
@@ -205,8 +269,21 @@ void MainWindow::apply_band()
   } else {
     programs_frame_.hide();
   }
-  set_status("No stations in memory");
+  refresh_face();
   settings_.save();
+}
+
+void MainWindow::play_current()
+{
+  const Station* st = current();
+  if (!st) {
+    set_status("Add a live stream first");
+    return;
+  }
+  if (!player_.open(st->url))
+    return;
+  player_.set_volume(settings_.volume);
+  player_.play();
 }
 
 void MainWindow::set_status(const Glib::ustring& text)
@@ -265,7 +342,7 @@ void MainWindow::on_station_add()
   url_row.pack_start(url_lab, Gtk::PACK_SHRINK);
   url_row.pack_start(url, Gtk::PACK_EXPAND_WIDGET);
 
-  Gtk::Label search_note{"Search radio-browser.info is M3. Add by URL is M1."};
+  Gtk::Label search_note{"Live: paste a stream URL. Search is M3. Shows are M4."};
   search_note.set_xalign(0);
 
   box->pack_start(type_row, Gtk::PACK_SHRINK);
@@ -273,7 +350,36 @@ void MainWindow::on_station_add()
   box->pack_start(url_row, Gtk::PACK_SHRINK);
   box->pack_start(search_note, Gtk::PACK_SHRINK);
   dlg.show_all();
-  dlg.run();
+  if (dlg.run() != Gtk::RESPONSE_OK)
+    return;
+  if (type_show.get_active()) {
+    set_status("Shows are M4");
+    return;
+  }
+  Station st;
+  st.name = name.get_text();
+  st.url = url.get_text();
+  if (st.url.empty()) {
+    set_status("Need a stream URL");
+    return;
+  }
+  if (st.name.empty())
+    st.name = st.url;
+  st.short_name = make_short_name(st.name);
+  for (int i = 0; i < static_cast<int>(settings_.live.size()); ++i) {
+    if (settings_.live[static_cast<std::size_t>(i)].url == st.url) {
+      settings_.current_live = i;
+      fill_memory();
+      settings_.save();
+      refresh_face();
+      return;
+    }
+  }
+  settings_.live.push_back(std::move(st));
+  settings_.current_live = static_cast<int>(settings_.live.size()) - 1;
+  fill_memory();
+  settings_.save();
+  refresh_face();
 }
 
 void MainWindow::on_station_remove()
@@ -301,27 +407,60 @@ void MainWindow::on_band_shows()
 void MainWindow::on_volume()
 {
   settings_.volume = volume_.get_value() / 100.0;
+  player_.set_volume(settings_.volume);
   settings_.save();
 }
 
 void MainWindow::on_stop()
 {
-  set_status("Stopped");
+  player_.stop();
+  refresh_face();
 }
 
 void MainWindow::on_play()
 {
-  set_status("Play is M1");
+  if (player_.state() == Player::State::Playing) {
+    player_.pause();
+    return;
+  }
+  if (player_.state() == Player::State::Paused) {
+    player_.play();
+    return;
+  }
+  play_current();
 }
 
 void MainWindow::on_preset(int slot)
 {
-  set_status(Glib::ustring::compose("Preset %1 is empty (M2)", slot + 1));
+  set_status(Glib::ustring::compose("Preset %1 is M2", slot + 1));
 }
 
 void MainWindow::on_memory()
 {
-  set_status("Memory is M2");
+  const Glib::ustring id = memory_.get_active_id();
+  if (id.empty() || id == "-1")
+    return;
+  settings_.current_live = std::atoi(id.c_str());
+  settings_.save();
+  play_current();
+}
+
+void MainWindow::on_player_state(Player::State)
+{
+  btn_play_.set_label(player_.state() == Player::State::Playing ? "❚❚" : "►");
+  refresh_face();
+}
+
+void MainWindow::on_player_error(const Glib::ustring& msg)
+{
+  set_status(msg);
+}
+
+void MainWindow::on_player_title(const Glib::ustring& title)
+{
+  if (shows_.get_active())
+    return;
+  lcd_now_.set_text(title);
 }
 
 }  // namespace listenomatic

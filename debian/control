@@ -8,7 +8,8 @@ Build-Depends:
  ninja-build,
  pkg-config,
  g++,
- libgtkmm-3.0-dev
+ libgtkmm-3.0-dev,
+ libgstreamer1.0-dev
 Standards-Version: 4.7.0
 Homepage: https://github.com/gmgauthier/listenomatic
 Vcs-Git: https://github.com/gmgauthier/listenomatic.git
@@ -19,7 +20,9 @@ Package: listenomatic
 Architecture: any
 Depends:
  ${misc:Depends},
- ${shlibs:Depends}
+ ${shlibs:Depends},
+ gstreamer1.0-plugins-base,
+ gstreamer1.0-plugins-good
 Description: Radio for The Lunduke Computer Operating System
  Listen-O-Matic is a gtkmm-3 kitchen radio: live streams and podcast
  shows on one face, six presets per band, a Memory list, and a now-playing
