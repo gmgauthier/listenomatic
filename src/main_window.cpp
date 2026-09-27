@@ -15,13 +15,29 @@
 #include <thread>
 
 namespace listenomatic {
+namespace {
+
+constexpr unsigned kFeedRefreshSec = 15 * 60;
+constexpr int kWinMinW = 640;
+constexpr int kWinMinH = 500;
+constexpr int kWinMaxW = 1280;
+constexpr int kWinMaxH = 1000;
+constexpr int kWinDefaultW = 736;
+constexpr int kWinDefaultH = 540;
+
+bool window_size_ok(int w, int h)
+{
+  return w >= kWinMinW && h >= kWinMinH && w <= kWinMaxW && h <= kWinMaxH;
+}
+
+}  // namespace
 
 MainWindow::MainWindow()
 {
   set_title("Listen-O-Matic");
-  set_resizable(false);
-  set_size_request(-1, 540);
-  set_default_size(736, 540);
+  set_resizable(true);
+  set_size_request(kWinMinW, kWinMinH);
+  set_default_size(kWinDefaultW, kWinDefaultH);
   set_border_width(0);
   get_style_context()->add_class("listenomatic-window");
 
@@ -29,6 +45,8 @@ MainWindow::MainWindow()
   add_accel_group(accel_);
 
   settings_.load();
+  if (window_size_ok(settings_.window_w, settings_.window_h))
+    set_default_size(settings_.window_w, settings_.window_h);
   player_.set_volume(settings_.volume);
   player_.signal_state_changed().connect(sigc::mem_fun(*this, &MainWindow::on_player_state));
   player_.signal_error().connect(sigc::mem_fun(*this, &MainWindow::on_player_error));
@@ -128,6 +146,10 @@ MainWindow::MainWindow()
     c->set_sizing(Gtk::TREE_VIEW_COLUMN_FIXED);
     c->set_expand(true);
     c->set_min_width(200);
+    for (auto* cell : c->get_cells()) {
+      if (auto* text = dynamic_cast<Gtk::CellRendererText*>(cell))
+        text->property_ellipsize() = Pango::ELLIPSIZE_END;
+    }
   }
   if (auto* c = programs_.get_column(1)) {
     c->set_sizing(Gtk::TREE_VIEW_COLUMN_FIXED);
@@ -142,7 +164,8 @@ MainWindow::MainWindow()
   programs_.set_fixed_height_mode(true);
   programs_.set_activate_on_single_click(true);
   programs_.signal_row_activated().connect(sigc::mem_fun(*this, &MainWindow::on_program_activated));
-  programs_scroll_.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  programs_scroll_.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
+  programs_scroll_.set_propagate_natural_width(false);
   programs_scroll_.set_min_content_height(160);
   programs_scroll_.set_size_request(-1, 160);
   programs_scroll_.add(programs_);
@@ -165,31 +188,93 @@ MainWindow::MainWindow()
     live_.set_active(true);
   show_all();
   apply_band();
+  feed_timer_ = Glib::signal_timeout().connect_seconds(
+      [this]() {
+        if (on_shows())
+          fetch_show(false, true);
+        return true;
+      },
+      kFeedRefreshSec);
   settings_.save();
 }
 
 void MainWindow::fit_window()
 {
+  int w = kWinDefaultW;
+  int h = kWinDefaultH;
+  if (window_size_ok(settings_.window_w, settings_.window_h)) {
+    w = settings_.window_w;
+    h = settings_.window_h;
+  }
   Gtk::Requisition min, nat;
   get_preferred_size(min, nat);
-  const int w = std::max(std::max(min.width, nat.width), 736);
-  const int h = std::max(std::max(min.height, nat.height), 540);
+  (void)nat;
+  if (min.width > w)
+    w = min.width;
+  if (min.height > h)
+    h = min.height;
+  if (w > kWinMaxW)
+    w = kWinMaxW;
+  if (h > kWinMaxH)
+    h = kWinMaxH;
   resize(w, h);
   if (auto gdk = get_window())
     gdk->resize(w, h);
 }
 
+void MainWindow::remember_window_size()
+{
+  if (!size_ready_)
+    return;
+  int w = 0;
+  int h = 0;
+  get_size(w, h);
+  if (!window_size_ok(w, h))
+    return;
+  if (w == settings_.window_w && h == settings_.window_h)
+    return;
+  settings_.window_w = w;
+  settings_.window_h = h;
+}
+
 void MainWindow::on_map()
 {
   Gtk::Window::on_map();
-  Glib::signal_idle().connect_once([this]() { fit_window(); });
+  Glib::signal_idle().connect_once([this]() {
+    fit_window();
+    size_ready_ = true;
+  });
+}
+
+void MainWindow::on_size_allocate(Gtk::Allocation& allocation)
+{
+  Gtk::Window::on_size_allocate(allocation);
+  if (!size_ready_)
+    return;
+  const int w = allocation.get_width();
+  const int h = allocation.get_height();
+  if (!window_size_ok(w, h) || (w == settings_.window_w && h == settings_.window_h))
+    return;
+  settings_.window_w = w;
+  settings_.window_h = h;
+  size_save_.disconnect();
+  size_save_ = Glib::signal_timeout().connect_seconds(
+      [this]() {
+        settings_.save();
+        return false;
+      },
+      1);
 }
 
 MainWindow::~MainWindow()
 {
-  save_progress();
+  size_save_.disconnect();
+  feed_timer_.disconnect();
   if (feed_alive_)
     *feed_alive_ = false;
+  remember_window_size();
+  save_progress();
+  settings_.save();
   delete catalog_;
   catalog_ = nullptr;
 }
@@ -403,8 +488,7 @@ void MainWindow::refresh_face()
   }
   lcd_station_.set_text(st->name);
   if (shows) {
-    if ((playing || player_.state() == Player::State::Paused) && current_program_ >= 0 &&
-        current_program_ < static_cast<int>(episodes_.size()))
+    if (current_program_ >= 0 && current_program_ < static_cast<int>(episodes_.size()))
       lcd_now_.set_text(episodes_[static_cast<std::size_t>(current_program_)].title);
     else if (!playing)
       lcd_now_.set_text("");
@@ -446,7 +530,6 @@ void MainWindow::apply_band()
     fill_live_tracks();
     refresh_face();
   }
-  Glib::signal_idle().connect_once([this]() { fit_window(); });
   settings_.save();
 }
 
@@ -485,10 +568,14 @@ void MainWindow::play_program(int index)
     pending_resume_ns_ = saved;
   if (!player_.open(p.enclosure))
     return;
+  if (const Station* st = current())
+    settings_.set_last_program(st->url, p.enclosure);
   player_.set_volume(settings_.volume);
   player_.play();
   lcd_now_.set_text(p.title);
+  select_program_row(index);
   refresh_face();
+  settings_.save();
 }
 
 void MainWindow::save_progress()
@@ -525,40 +612,65 @@ void MainWindow::fill_programs()
 
 void MainWindow::load_show_feed(bool play_latest)
 {
+  fetch_show(play_latest, false);
+}
+
+void MainWindow::fetch_show(bool play_latest, bool quiet)
+{
   const Station* st = current();
   if (!st) {
-    episodes_.clear();
-    program_store_->clear();
-    refresh_face();
+    if (!quiet) {
+      episodes_.clear();
+      program_store_->clear();
+      refresh_face();
+    }
     return;
   }
-  program_store_->clear();
-  auto row = *program_store_->append();
-  row[program_cols_.title] = "Loading programs…";
-  set_status("Loading feed…");
-  refresh_face();
-  auto alive = feed_alive_;
   const std::string url = st->url;
-  std::thread([this, alive, url, play_latest]() {
+  std::string keep;
+  if (quiet && current_program_ >= 0 && current_program_ < static_cast<int>(episodes_.size()))
+    keep = episodes_[static_cast<std::size_t>(current_program_)].enclosure;
+  const std::uint64_t gen = ++feed_gen_;
+  if (!quiet) {
+    program_store_->clear();
+    auto row = *program_store_->append();
+    row[program_cols_.title] = "Loading programs…";
+    set_status("Loading feed…");
+    refresh_face();
+  }
+  auto alive = feed_alive_;
+  std::thread([this, alive, url, play_latest, quiet, keep, gen]() {
     std::string err;
     const std::string xml = http_get(url, err);
     PodcastFeed feed;
     if (err.empty() && !parse_podcast(xml, feed, err)) {
       /* err already set */
     }
-    Glib::signal_idle().connect_once(
-        [this, alive, feed = std::move(feed), err = std::move(err), play_latest]() {
-          if (!*alive)
-            return;
-          apply_feed(feed, err, play_latest);
-        });
+    Glib::signal_idle().connect_once([this, alive, feed = std::move(feed), err = std::move(err),
+                                      url, play_latest, quiet, keep, gen]() {
+      if (!*alive || gen != feed_gen_)
+        return;
+      if (!on_shows())
+        return;
+      const Station* now = current();
+      if (!now || now->url != url)
+        return;
+      apply_feed(feed, err, play_latest, quiet, keep);
+    });
   }).detach();
 }
 
-void MainWindow::apply_feed(PodcastFeed feed, std::string error, bool play_latest)
+void MainWindow::apply_feed(PodcastFeed feed, std::string error, bool play_latest, bool quiet,
+                            const std::string& keep_enclosure)
 {
   if (!error.empty() && feed.programs.empty()) {
+    if (quiet && !episodes_.empty()) {
+      if (player_.state() == Player::State::Stopped)
+        set_status(error);
+      return;
+    }
     episodes_.clear();
+    current_program_ = -1;
     program_store_->clear();
     auto row = *program_store_->append();
     row[program_cols_.title] = error;
@@ -579,15 +691,45 @@ void MainWindow::apply_feed(PodcastFeed feed, std::string error, bool play_lates
       settings_.save();
     }
   }
+  const Station* st = current();
+  const std::string saved = st ? settings_.last_program_for(st->url) : std::string();
   episodes_ = std::move(feed.programs);
-  current_program_ = episodes_.empty() ? -1 : 0;
+  const std::string want = !keep_enclosure.empty() ? keep_enclosure : saved;
+  int pick = -1;
+  if (!want.empty()) {
+    for (int i = 0; i < static_cast<int>(episodes_.size()); ++i) {
+      if (episodes_[static_cast<std::size_t>(i)].enclosure == want) {
+        pick = i;
+        break;
+      }
+    }
+  }
+  const bool playing_missing =
+      pick < 0 && !keep_enclosure.empty() &&
+      (player_.state() == Player::State::Playing || player_.state() == Player::State::Paused);
+  if (pick < 0 && !playing_missing && !episodes_.empty())
+    pick = 0;
+  current_program_ = pick;
   fill_programs();
+  select_program_row(pick);
   refresh_face();
+  const bool busy =
+      player_.state() == Player::State::Playing || player_.state() == Player::State::Paused;
   if (play_latest && current_program_ >= 0)
     play_program(current_program_);
-  else
+  else if (!busy)
     set_status(Glib::ustring::compose("%1 programs", episodes_.size()));
-  Glib::signal_idle().connect_once([this]() { fit_window(); });
+}
+
+void MainWindow::select_program_row(int index)
+{
+  if (index < 0 || !programs_.get_selection())
+    return;
+  Gtk::TreePath path;
+  path.push_back(index);
+  programs_.get_selection()->select(path);
+  if (get_realized())
+    programs_.scroll_to_row(path);
 }
 
 void MainWindow::set_status(const Glib::ustring& text)

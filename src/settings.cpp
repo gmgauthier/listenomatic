@@ -114,6 +114,13 @@ void Settings::load()
   } catch (const Glib::Error&) {
   }
   try {
+    if (kf.has_key("window", "w"))
+      window_w = kf.get_integer("window", "w");
+    if (kf.has_key("window", "h"))
+      window_h = kf.get_integer("window", "h");
+  } catch (const Glib::Error&) {
+  }
+  try {
     if (kf.has_key("audio", "volume"))
       volume = kf.get_double("audio", "volume");
   } catch (const Glib::Error&) {
@@ -172,15 +179,45 @@ void Settings::load()
     }
   } catch (const Glib::Error&) {
   }
+
+  last_programs.clear();
+  try {
+    if (kf.has_group("program") && kf.has_key("program", "count")) {
+      const int n = kf.get_integer("program", "count");
+      for (int i = 0; i < n; ++i) {
+        LastProgram p;
+        try {
+          p.feed = kf.get_string("program", Glib::ustring::compose("feed%1", i));
+          p.enclosure = kf.get_string("program", Glib::ustring::compose("enc%1", i));
+        } catch (const Glib::Error&) {
+          continue;
+        }
+        if (!p.feed.empty() && !p.enclosure.empty())
+          last_programs.push_back(std::move(p));
+      }
+    }
+  } catch (const Glib::Error&) {
+  }
 }
 
 void Settings::save() const
 {
   Glib::KeyFile kf;
   kf.set_string("window", "band", band == Band::Shows ? "shows" : "live");
+  if (window_w > 0 && window_h > 0) {
+    kf.set_integer("window", "w", window_w);
+    kf.set_integer("window", "h", window_h);
+  }
   kf.set_double("audio", "volume", volume);
   save_station_group(kf, "live", live, current_live, live_presets);
   save_station_group(kf, "shows", shows, current_show, show_presets);
+  kf.set_integer("program", "count", static_cast<int>(last_programs.size()));
+  for (int i = 0; i < static_cast<int>(last_programs.size()); ++i) {
+    kf.set_string("program", Glib::ustring::compose("feed%1", i),
+                  last_programs[static_cast<std::size_t>(i)].feed);
+    kf.set_string("program", Glib::ustring::compose("enc%1", i),
+                  last_programs[static_cast<std::size_t>(i)].enclosure);
+  }
   kf.set_integer("resume", "count", static_cast<int>(resumes.size()));
   for (int i = 0; i < static_cast<int>(resumes.size()); ++i) {
     kf.set_string("resume", Glib::ustring::compose("url%1", i),
@@ -219,6 +256,28 @@ void Settings::clear_resume(const std::string& enclosure)
   resumes.erase(std::remove_if(resumes.begin(), resumes.end(),
                                [&](const Resume& r) { return r.enclosure == enclosure; }),
                 resumes.end());
+}
+
+std::string Settings::last_program_for(const std::string& feed) const
+{
+  for (const auto& p : last_programs) {
+    if (p.feed == feed)
+      return p.enclosure;
+  }
+  return {};
+}
+
+void Settings::set_last_program(const std::string& feed, const std::string& enclosure)
+{
+  if (feed.empty() || enclosure.empty())
+    return;
+  last_programs.erase(std::remove_if(last_programs.begin(), last_programs.end(),
+                                     [&](const LastProgram& p) { return p.feed == feed; }),
+                      last_programs.end());
+  last_programs.insert(last_programs.begin(), LastProgram{feed, enclosure});
+  constexpr int kMax = 80;
+  if (static_cast<int>(last_programs.size()) > kMax)
+    last_programs.resize(static_cast<std::size_t>(kMax));
 }
 
 }  // namespace listenomatic

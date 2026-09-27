@@ -1,18 +1,16 @@
 # Listen-O-Matic backlog
 
-Current: **M5 done, unreleased.** Last updated: 2026-09-27. Next: **M6** polish.
+Current: **M6 done, unreleased.** Last updated: 2026-09-27. Next: **M7** package.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## High Priority
 
-- M6 polish (window size leftovers, auto-refresh feeds)
+- M7 package (`v0.1.0`)
 
 ## Low Priority
 
-- M5 Catalog — Station → Catalog… (browse live *and* podcasts). Not the home screen. Podcasts: starter `podcasts.ini` + iTunes Search (no key).
-- M6 last program, window size, in-process refresh
-- M7 package (`v0.1.0`)
+None. Package is the next slice.
 
 ## Out of Scope
 

@@ -10,6 +10,7 @@
 #include <gtkmm.h>
 
 #include <array>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <vector>
@@ -23,10 +24,12 @@ class MainWindow : public Gtk::Window {
 
  protected:
   void on_map() override;
+  void on_size_allocate(Gtk::Allocation& allocation) override;
 
  private:
   void load_css();
   void fit_window();
+  void remember_window_size();
   void build_menu();
   void apply_band();
   bool on_shows() const;
@@ -44,8 +47,11 @@ class MainWindow : public Gtk::Window {
   void on_skip(int seconds);
   void select_station(int index, bool play);
   void load_show_feed(bool play_latest);
-  void apply_feed(PodcastFeed feed, std::string error, bool play_latest);
+  void fetch_show(bool play_latest, bool quiet);
+  void apply_feed(PodcastFeed feed, std::string error, bool play_latest, bool quiet,
+                  const std::string& keep_enclosure);
   void fill_programs();
+  void select_program_row(int index);
   const Station* current() const;
   void set_status(const Glib::ustring& text);
   void on_player_state(Player::State state);
@@ -143,6 +149,10 @@ class MainWindow : public Gtk::Window {
   int current_program_ = -1;
   gint64 pending_resume_ns_ = 0;
   bool seek_from_player_ = false;
+  bool size_ready_ = false;
+  std::uint64_t feed_gen_ = 0;
+  sigc::connection feed_timer_;
+  sigc::connection size_save_;
   std::shared_ptr<bool> feed_alive_;
 };
 

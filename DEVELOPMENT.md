@@ -21,7 +21,7 @@ Unreleased. `master` is Unlicense only. Do not tag until M7.
 | **M3** Find live | `feature/m3-find-live` | Done. Search radio-browser inside Add…. Not merged. |
 | **M4** One show | `feature/m4-one-show` | Done. RSS, programs, enclosure, seek. Not merged. |
 | **M5** Catalog | `feature/m5-catalog` | Done. Station → Catalog…. Not merged. |
-| **M6** Polish | — | Last program, window size, in-process refresh. ICY title already in M1. |
+| **M6** Polish | `feature/m6-polish` | Done. Last program, window size, 15-minute feed refresh. Not merged. |
 | **M7** Package | — | `scripts/release.sh`, tag `v0.1.0`. |
 
 ## 1. Locked decisions
@@ -108,7 +108,13 @@ Select adds to Memory on the matching band. Store on Preset stays a face verb. D
 
 ### M6 — Polish
 
-Window size. Auto-refresh show feeds while open (interval, in-process). ICY title already in M1. Resume-from-last-position and ±15s skip landed with M4.
+**Done** on `feature/m6-polish`.
+
+- **Last program.** Each show remembers the episode you played (`program` group in the ini, keyed by RSS URL). Opening that show selects it and the LCD names it. Play starts there; the M4 resume position still applies. No auto-play.
+- **Window size.** Default frame is 736×540. Long program titles ellipsize inside the list, and loading a feed does not grow the window. The frame can be resized; a size from 640×500 through 1280×1000 is stored as `window` `w` and `h`.
+- **In-process refresh.** While the Shows band is up, the tuned feed reloads every 15 minutes. Playback is left alone. New episodes appear in the list.
+
+ICY title already in M1. Resume-from-last-position and ±15s skip landed with M4.
 
 ### M7 — Package
 

@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**M5 done, unreleased.** Live, Shows, Catalog (radio-browser live; starter podcasts plus iTunes search). Package is later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**M6 done, unreleased.** Live, Shows, Catalog. A show reopens on the last episode, the frame keeps its size, and the tuned feed reloads every 15 minutes. Package is later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

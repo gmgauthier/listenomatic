@@ -1,6 +1,6 @@
 # Installing Listen-O-Matic
 
-Unreleased. M0 is a git build. `.deb` / tarball / AppImage arrive at M6 (`v0.1.0`).
+Unreleased. M0 is a git build. `.deb` / tarball / AppImage arrive at M7 (`v0.1.0`).
 
 ## Runtime needs
 
@@ -20,4 +20,4 @@ meson compile -C build
 ./build/listenomatic
 ```
 
-Config (when M2 lands): `~/.config/listenomatic/listenomatic.ini`.
+Config: `~/.config/listenomatic/listenomatic.ini`.
