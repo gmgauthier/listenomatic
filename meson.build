@@ -43,6 +43,7 @@ executable(
   'src/radiobrowser.cpp',
   'src/rss.cpp',
   'src/add_dialog.cpp',
+  'src/catalog_window.cpp',
   'src/main_window.cpp',
   'src/about_dialog.cpp',
   include_directories: inc,
@@ -63,6 +64,11 @@ install_data(
 
 install_data(
   'data/samples.ini',
+  install_dir: get_option('datadir') / 'listenomatic',
+)
+
+install_data(
+  'data/podcasts.ini',
   install_dir: get_option('datadir') / 'listenomatic',
 )
 

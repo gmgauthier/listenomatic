@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**M4 done, unreleased.** Live streams, Shows (RSS programs, seek), presets, Search radio-browser. Catalog is later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**M5 done, unreleased.** Live, Shows, Catalog (radio-browser + popular podcasts). Package is later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

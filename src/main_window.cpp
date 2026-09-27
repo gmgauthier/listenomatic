@@ -3,6 +3,7 @@
 #include "main_window.hpp"
 #include "about_dialog.hpp"
 #include "add_dialog.hpp"
+#include "catalog_window.hpp"
 #include "fetch.hpp"
 #include "paths.hpp"
 #include "rss.hpp"
@@ -189,6 +190,8 @@ MainWindow::~MainWindow()
   save_progress();
   if (feed_alive_)
     *feed_alive_ = false;
+  delete catalog_;
+  catalog_ = nullptr;
 }
 
 void MainWindow::load_css()
@@ -232,6 +235,7 @@ void MainWindow::build_menu()
   auto* st_item = Gtk::manage(new Gtk::MenuItem("_Station", true));
   auto* st_menu = Gtk::manage(new Gtk::Menu());
   add_item(*st_menu, "_Add…", sigc::mem_fun(*this, &MainWindow::on_station_add));
+  add_item(*st_menu, "_Catalog…", sigc::mem_fun(*this, &MainWindow::on_catalog));
   add_item(*st_menu, "_Remove", sigc::mem_fun(*this, &MainWindow::on_station_remove));
   auto* store_item = Gtk::manage(new Gtk::MenuItem("Store on Preset", true));
   auto* store_menu = Gtk::manage(new Gtk::Menu());
@@ -648,6 +652,46 @@ void MainWindow::on_station_add()
     fill_live_tracks();
     refresh_face();
   }
+}
+
+void MainWindow::on_catalog()
+{
+  if (!catalog_) {
+    catalog_ = new CatalogWindow();
+    catalog_->set_transient_for(*this);
+    catalog_->signal_add().connect(sigc::mem_fun(*this, &MainWindow::add_from_catalog));
+  }
+  catalog_->present();
+}
+
+void MainWindow::add_from_catalog(Station st, bool is_show)
+{
+  auto& list = is_show ? settings_.shows : settings_.live;
+  int& cur = is_show ? settings_.current_show : settings_.current_live;
+  for (int i = 0; i < static_cast<int>(list.size()); ++i) {
+    if (list[static_cast<std::size_t>(i)].url == st.url) {
+      cur = i;
+      settings_.save();
+      if (is_show == on_shows()) {
+        fill_memory();
+        refresh_presets();
+      }
+      set_status(Glib::ustring::compose("Already in Memory: %1", st.name));
+      return;
+    }
+  }
+  list.push_back(std::move(st));
+  cur = static_cast<int>(list.size()) - 1;
+  settings_.save();
+  if (is_show == on_shows()) {
+    fill_memory();
+    refresh_presets();
+    if (is_show)
+      load_show_feed(false);
+    else
+      fill_live_tracks();
+  }
+  set_status(Glib::ustring::compose("Added %1", list.back().name));
 }
 
 void MainWindow::on_station_remove()

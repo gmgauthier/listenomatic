@@ -27,26 +27,8 @@ int member_int(JsonObject* obj, const char* key)
   return static_cast<int>(json_object_get_int_member(obj, key));
 }
 
-}  // namespace
-
-std::vector<Station> search_radio_browser(const std::string& term, std::string& error,
-                                          GCancellable* cancel)
+std::vector<Station> parse_station_array(const std::string& body, std::string& error)
 {
-  error.clear();
-  if (term.empty()) {
-    error = "Type a name, place, or call letters";
-    return {};
-  }
-
-  gchar* esc = g_uri_escape_string(term.c_str(), nullptr, FALSE);
-  const std::string url = std::string(kHost) + "/json/stations/search?name=" + (esc ? esc : "") +
-                          "&limit=" + std::to_string(kLimit) + "&hidebroken=true";
-  g_free(esc);
-
-  const std::string body = http_get(url, error, cancel);
-  if (body.empty())
-    return {};
-
   JsonParser* parser = json_parser_new();
   GError* gerr = nullptr;
   if (!json_parser_load_from_data(parser, body.c_str(), static_cast<gssize>(body.size()), &gerr)) {
@@ -90,8 +72,46 @@ std::vector<Station> search_radio_browser(const std::string& term, std::string& 
     out.push_back(std::move(st));
   }
   g_object_unref(parser);
-  if (out.empty())
+  return out;
+}
+
+}  // namespace
+
+std::vector<Station> search_radio_browser(const std::string& term, std::string& error,
+                                          GCancellable* cancel)
+{
+  error.clear();
+  if (term.empty()) {
+    error = "Type a name, place, or call letters";
+    return {};
+  }
+
+  gchar* esc = g_uri_escape_string(term.c_str(), nullptr, FALSE);
+  const std::string url = std::string(kHost) + "/json/stations/search?name=" + (esc ? esc : "") +
+                          "&limit=" + std::to_string(kLimit) + "&hidebroken=true";
+  g_free(esc);
+
+  const std::string body = http_get(url, error, cancel);
+  if (body.empty())
+    return {};
+  auto out = parse_station_array(body, error);
+  if (out.empty() && error.empty())
     error = "No live stations matched";
+  return out;
+}
+
+std::vector<Station> browse_radio_browser_popular(std::string& error, GCancellable* cancel)
+{
+  error.clear();
+  const std::string url =
+      std::string(kHost) +
+      "/json/stations/search?order=clickcount&reverse=true&limit=80&hidebroken=true";
+  const std::string body = http_get(url, error, cancel);
+  if (body.empty())
+    return {};
+  auto out = parse_station_array(body, error);
+  if (out.empty() && error.empty())
+    error = "No live stations listed";
   return out;
 }
 

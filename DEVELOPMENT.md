@@ -20,7 +20,7 @@ Unreleased. `master` is Unlicense only. Do not tag until M7.
 | **M2** Presets | `feature/m2-presets` | Done. Punch 1–6, Store on Preset, Remove. Not merged. |
 | **M3** Find live | `feature/m3-find-live` | Done. Search radio-browser inside Add…. Not merged. |
 | **M4** One show | `feature/m4-one-show` | Done. RSS, programs, enclosure, seek. Not merged. |
-| **M5** Catalog | — | Station → Catalog… separate window. Browse live *and* podcasts. |
+| **M5** Catalog | `feature/m5-catalog` | Done. Station → Catalog…. Not merged. |
 | **M6** Polish | — | Last program, window size, in-process refresh. ICY title already in M1. |
 | **M7** Package | — | `scripts/release.sh`, tag `v0.1.0`. |
 

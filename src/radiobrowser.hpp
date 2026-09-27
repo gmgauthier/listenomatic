@@ -15,5 +15,7 @@ namespace listenomatic {
  * Blocking. Call from a worker. */
 std::vector<Station> search_radio_browser(const std::string& term, std::string& error,
                                           GCancellable* cancel = nullptr);
+std::vector<Station> browse_radio_browser_popular(std::string& error,
+                                                  GCancellable* cancel = nullptr);
 
 }  // namespace listenomatic

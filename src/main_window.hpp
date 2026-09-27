@@ -57,6 +57,8 @@ class MainWindow : public Gtk::Window {
   void on_quit();
   void on_about();
   void on_station_add();
+  void on_catalog();
+  void add_from_catalog(Station st, bool is_show);
   void on_station_remove();
   void on_store_preset(int slot);
   void on_band_live();
@@ -73,6 +75,7 @@ class MainWindow : public Gtk::Window {
 
   Settings settings_;
   Player player_;
+  class CatalogWindow* catalog_ = nullptr;
   Glib::RefPtr<Gtk::AccelGroup> accel_;
   sigc::connection seek_changed_;
 

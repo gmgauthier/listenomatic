@@ -1,12 +1,12 @@
 # Listen-O-Matic backlog
 
-Current: **M4 done, unreleased.** Last updated: 2026-09-27. Next: **M5** Catalog.
+Current: **M5 done, unreleased.** Last updated: 2026-09-27. Next: **M6** polish.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## High Priority
 
-- M5 Catalog — Station → Catalog… (browse live *and* podcasts)
+- M6 polish (window size leftovers, auto-refresh feeds)
 
 ## Low Priority
 
