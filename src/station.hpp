@@ -11,6 +11,7 @@ struct Station {
   std::string short_name;
   std::string url;
   std::string codec;
+  std::string place;
   int bitrate = 0;
 };
 

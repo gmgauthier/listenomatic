@@ -13,6 +13,8 @@ project(
 
 gtkmm = dependency('gtkmm-3.0')
 gst = dependency('gstreamer-1.0')
+soup = dependency('libsoup-3.0')
+json_glib = dependency('json-glib-1.0')
 
 conf = configuration_data()
 conf.set_quoted('VERSION', meson.project_version())
@@ -36,10 +38,13 @@ executable(
   'src/settings.cpp',
   'src/player.cpp',
   'src/marquee.cpp',
+  'src/fetch.cpp',
+  'src/radiobrowser.cpp',
+  'src/add_dialog.cpp',
   'src/main_window.cpp',
   'src/about_dialog.cpp',
   include_directories: inc,
-  dependencies: [gtkmm, gst],
+  dependencies: [gtkmm, gst, soup, json_glib],
   install: true,
   install_dir: get_option('bindir'),
 )

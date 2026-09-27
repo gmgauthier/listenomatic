@@ -1,12 +1,12 @@
 # Listen-O-Matic backlog
 
-Current: **M2 done, unreleased.** Last updated: 2026-09-27. Next: **M3** Find live (in Add…).
+Current: **M3 done, unreleased.** Last updated: 2026-09-27. Next: **M4** one show.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## High Priority
 
-- M3 — Search radio-browser inside Add… (live only; button is Search, not Find)
+- M4 — one show (RSS, program list, enclosure, seek)
 
 ## Low Priority
 

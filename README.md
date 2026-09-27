@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**M2 done, unreleased.** Live playbin, Memory, presets, ICY marquee. Shows and Catalog are later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**M3 done, unreleased.** Live playbin, Memory, presets, ICY marquee, Search radio-browser in Add…. Shows and Catalog are later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

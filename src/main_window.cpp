@@ -2,6 +2,7 @@
 
 #include "main_window.hpp"
 #include "about_dialog.hpp"
+#include "add_dialog.hpp"
 #include "paths.hpp"
 
 #include <cstdlib>
@@ -346,67 +347,18 @@ void MainWindow::on_about()
 
 void MainWindow::on_station_add()
 {
-  Gtk::Dialog dlg("Add Station", *this, true);
-  dlg.set_default_size(460, 280);
-  dlg.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
-  dlg.add_button("_Add", Gtk::RESPONSE_OK);
-  dlg.set_default_response(Gtk::RESPONSE_OK);
-
-  auto* box = dlg.get_content_area();
-  box->set_border_width(10);
-  box->set_spacing(8);
-
-  Gtk::Box type_row{Gtk::ORIENTATION_HORIZONTAL, 12};
-  Gtk::Label type_lab{"Type"};
-  type_lab.set_width_chars(6);
-  type_lab.set_xalign(1);
-  Gtk::RadioButton type_live{"Live stream"};
-  Gtk::RadioButton type_show{"Show"};
-  type_show.join_group(type_live);
-  type_row.pack_start(type_lab, Gtk::PACK_SHRINK);
-  type_row.pack_start(type_live, Gtk::PACK_SHRINK);
-  type_row.pack_start(type_show, Gtk::PACK_SHRINK);
-
-  Gtk::Box name_row{Gtk::ORIENTATION_HORIZONTAL, 8};
-  Gtk::Label name_lab{"Name"};
-  name_lab.set_width_chars(6);
-  name_lab.set_xalign(1);
-  Gtk::Entry name;
-  name_row.pack_start(name_lab, Gtk::PACK_SHRINK);
-  name_row.pack_start(name, Gtk::PACK_EXPAND_WIDGET);
-
-  Gtk::Box url_row{Gtk::ORIENTATION_HORIZONTAL, 8};
-  Gtk::Label url_lab{"URL"};
-  url_lab.set_width_chars(6);
-  url_lab.set_xalign(1);
-  Gtk::Entry url;
-  url_row.pack_start(url_lab, Gtk::PACK_SHRINK);
-  url_row.pack_start(url, Gtk::PACK_EXPAND_WIDGET);
-
-  Gtk::Label search_note{"Live: paste a stream URL. Search is M3. Shows are M4."};
-  search_note.set_xalign(0);
-
-  box->pack_start(type_row, Gtk::PACK_SHRINK);
-  box->pack_start(name_row, Gtk::PACK_SHRINK);
-  box->pack_start(url_row, Gtk::PACK_SHRINK);
-  box->pack_start(search_note, Gtk::PACK_SHRINK);
-  dlg.show_all();
+  AddDialog dlg(*this);
   if (dlg.run() != Gtk::RESPONSE_OK)
     return;
-  if (type_show.get_active()) {
+  if (dlg.is_show()) {
     set_status("Shows are M4");
     return;
   }
-  Station st;
-  st.name = name.get_text();
-  st.url = url.get_text();
+  Station st = dlg.station();
   if (st.url.empty()) {
     set_status("Need a stream URL");
     return;
   }
-  if (st.name.empty())
-    st.name = st.url;
-  st.short_name = make_short_name(st.name);
   for (int i = 0; i < static_cast<int>(settings_.live.size()); ++i) {
     if (settings_.live[static_cast<std::size_t>(i)].url == st.url) {
       settings_.current_live = i;
