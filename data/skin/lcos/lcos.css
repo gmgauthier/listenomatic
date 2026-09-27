@@ -11,6 +11,10 @@ window.listenomatic-window {
   min-height: 88px;
 }
 
+.listenomatic-lcd-now {
+  color: #9EE7A0;
+}
+
 .listenomatic-lcd label {
   color: #9EE7A0;
   font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;

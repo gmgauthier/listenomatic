@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "marquee.hpp"
 #include "player.hpp"
 #include "settings.hpp"
 
@@ -68,7 +69,7 @@ class MainWindow : public Gtk::Window {
   Gtk::Box lcd_top_{Gtk::ORIENTATION_HORIZONTAL, 8};
   Gtk::Label lcd_station_;
   Gtk::Label lcd_badge_;
-  Gtk::Label lcd_now_;
+  Marquee lcd_now_;
   Gtk::Label lcd_hint_;
 
   Gtk::Box transport_{Gtk::ORIENTATION_HORIZONTAL, 6};

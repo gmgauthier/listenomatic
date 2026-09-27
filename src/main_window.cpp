@@ -61,11 +61,13 @@ MainWindow::MainWindow()
   lcd_box_.get_style_context()->add_class("listenomatic-lcd");
   lcd_.set_border_width(10);
   lcd_station_.set_xalign(0);
+  lcd_station_.set_ellipsize(Pango::ELLIPSIZE_END);
+  lcd_station_.set_hexpand(true);
   lcd_station_.get_style_context()->add_class("listenomatic-lcd-title");
   lcd_badge_.get_style_context()->add_class("listenomatic-lcd-badge");
   lcd_badge_.set_xalign(1);
-  lcd_now_.set_xalign(0);
   lcd_hint_.set_xalign(0);
+  lcd_hint_.set_ellipsize(Pango::ELLIPSIZE_END);
   lcd_hint_.get_style_context()->add_class("listenomatic-lcd-hint");
   lcd_top_.pack_start(lcd_station_, Gtk::PACK_EXPAND_WIDGET);
   lcd_top_.pack_start(lcd_badge_, Gtk::PACK_SHRINK);

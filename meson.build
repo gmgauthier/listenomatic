@@ -35,6 +35,7 @@ executable(
   'src/station.cpp',
   'src/settings.cpp',
   'src/player.cpp',
+  'src/marquee.cpp',
   'src/main_window.cpp',
   'src/about_dialog.cpp',
   include_directories: inc,
