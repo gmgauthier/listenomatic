@@ -1,0 +1,26 @@
+Source: listenomatic
+Section: sound
+Priority: optional
+Maintainer: Greg Gauthier <gmgauthier@protonmail.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ meson (>= 0.56),
+ ninja-build,
+ pkg-config,
+ g++,
+ libgtkmm-3.0-dev
+Standards-Version: 4.7.0
+Homepage: https://github.com/gmgauthier/listenomatic
+Vcs-Git: https://github.com/gmgauthier/listenomatic.git
+Vcs-Browser: https://github.com/gmgauthier/listenomatic
+Rules-Requires-Root: no
+
+Package: listenomatic
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends}
+Description: Radio for The Lunduke Computer Operating System
+ Listen-O-Matic is a gtkmm-3 kitchen radio: live streams and podcast
+ shows on one face, six presets per band, a Memory list, and a now-playing
+ well. Not a feed reader and not a local file player.

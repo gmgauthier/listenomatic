@@ -1,0 +1,36 @@
+/* Listen-O-Matic lcos skin — GTK3 CSS.
+ * Decorations stay with Clearlooks / Phenix. We only tint the client.
+ */
+
+window.listenomatic-window {
+  background-color: #E6E6E1;
+}
+
+.listenomatic-lcd {
+  background-color: #0B1D38;
+  min-height: 88px;
+}
+
+.listenomatic-lcd label {
+  color: #9EE7A0;
+  font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+}
+
+.listenomatic-lcd label.listenomatic-lcd-title {
+  color: #E8F2FF;
+  font-size: 14px;
+}
+
+.listenomatic-lcd label.listenomatic-lcd-badge {
+  color: #7EC8E3;
+  font-size: 10px;
+}
+
+.listenomatic-lcd label.listenomatic-lcd-hint {
+  color: #6a8aaa;
+  font-size: 12px;
+}
+
+statusbar {
+  background-color: #D4D0C8;
+}

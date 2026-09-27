@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Listen-O-Matic
+Comment=A radio for The Lunduke Computer Operating System
+Exec=listenomatic
+Icon=listenomatic
+Terminal=false
+Hidden=false
+Categories=GTK;AudioVideo;Audio;
+StartupWMClass=listenomatic
+StartupNotify=true
