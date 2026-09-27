@@ -1,5 +1,7 @@
-listenomatic (0.0.0-1) UNRELEASED; urgency=medium
+listenomatic (1.0.0-1) unstable; urgency=medium
 
-  * M0: window chrome. Band switch, empty presets, LCD well, transport stubs.
+  * Initial release. Kitchen radio for LCOS: live streams, podcast
+    shows, presets, Memory, Catalog (radio-browser and iTunes search),
+    last program, and in-process feed refresh. Milestones M0–M7.
 
- -- Greg Gauthier <gmgauthier@protonmail.com>  Sat, 27 Sep 2026 18:00:00 +0100
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Sun, 27 Sep 2026 15:55:40 +0100

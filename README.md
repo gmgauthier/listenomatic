@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**M6 done, unreleased.** Live, Shows, Catalog. A show reopens on the last episode, the frame keeps its size, and the tuned feed reloads every 15 minutes. Package is later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**v1.0.0 packaging is in tree, untagged.** Live, Shows, Catalog, last program, saved window size, 15-minute feed refresh. The `.deb` is the install. Tag `v1.0.0` after merge. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|
@@ -21,11 +21,15 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 ## Build
 
 ```
-sudo apt install build-essential meson ninja-build pkg-config g++ libgtkmm-3.0-dev clang-format cppcheck
+sudo apt install build-essential meson ninja-build pkg-config g++ libgtkmm-3.0-dev \
+  libgstreamer1.0-dev libsoup-3.0-dev libjson-glib-dev libxml2-dev \
+  gstreamer1.0-plugins-base gstreamer1.0-plugins-good clang-format cppcheck
 meson setup build
 meson compile -C build
 ./build/listenomatic
 ```
+
+Release artifacts: `./scripts/release.sh all`. See [INSTALL.md](INSTALL.md).
 
 PR lint gate: `./scripts/lint.sh` (CI runs this; no `--fix`). Format `src/` locally with `./scripts/lint.sh --fix`.
 

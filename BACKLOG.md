@@ -1,16 +1,16 @@
 # Listen-O-Matic backlog
 
-Current: **M6 done, unreleased.** Last updated: 2026-09-27. Next: **M7** package.
+Current: **M7 packaging in tree, untagged.** Last updated: 2026-09-27. Tag **`v1.0.0`** after merge. Then Sideboard.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## High Priority
 
-- M7 package (`v0.1.0`)
+- Tag `v1.0.0` after the stack merges, publish the `.deb`, then add Listen-O-Matic to Sideboard.
 
 ## Low Priority
 
-None. Package is the next slice.
+None.
 
 ## Out of Scope
 

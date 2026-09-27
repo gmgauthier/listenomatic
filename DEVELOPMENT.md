@@ -11,7 +11,7 @@ Suite design: `lcos-projects/LISTEN-O-MATIC.md`
 
 ## Status (2026-09-27)
 
-Unreleased. `master` is Unlicense only. Do not tag until M7.
+Unreleased. `master` is Unlicense only. Tag `v1.0.0` after this stack merges.
 
 | Slice | Branch / PR | State |
 |---|---|---|
@@ -22,7 +22,7 @@ Unreleased. `master` is Unlicense only. Do not tag until M7.
 | **M4** One show | `feature/m4-one-show` | Done. RSS, programs, enclosure, seek. Not merged. |
 | **M5** Catalog | `feature/m5-catalog` | Done. Station → Catalog…. Not merged. |
 | **M6** Polish | `feature/m6-polish` | Done. Last program, window size, 15-minute feed refresh. Not merged. |
-| **M7** Package | — | `scripts/release.sh`, tag `v0.1.0`. |
+| **M7** Package | `feature/m7-package` | In tree. `.deb`, tarball, AppImage. Tag `v1.0.0` after merge. |
 
 ## 1. Locked decisions
 
@@ -118,7 +118,9 @@ ICY title already in M1. Resume-from-last-position and ±15s skip landed with M4
 
 ### M7 — Package
 
-`debian/` is already in the tree. `scripts/release.sh` → `.deb`, tarball, AppImage. Tag `v0.1.0`.
+**In tree** on `feature/m7-package`. Version `1.0.0`.
+
+`scripts/release.sh` writes `dist/listenomatic-1.0.0.tar.xz`, `dist/listenomatic_1.0.0-1_amd64.deb`, and an AppImage when `linuxdeploy` is on `PATH`. The `.deb` is the LCOS install. The tag `v1.0.0` is cut after this stack merges to `master`. Sideboard gets a catalog row only after that GitHub release exists.
 
 ## 5. Parked
 
@@ -174,4 +176,4 @@ Then `./scripts/release.sh` produces `.deb`, tarball, and AppImage.
 | **MINOR** (`x.Y.0`) | New backward-compatible feature. |
 | **MAJOR** (`X.0.0`) | Breaking change: native file format, dropped config keys, removed UI users rely on. |
 
-Do not bump for unreleased work. First tag is `v0.1.0` at M7.
+Do not bump for unreleased work. First tag is `v1.0.0` at M7: the finished radio, not a break from an older release. A later break of the ini or the face is `2.0.0`.
