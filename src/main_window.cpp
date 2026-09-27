@@ -513,6 +513,10 @@ void MainWindow::apply_band()
   btn_back_.set_sensitive(shows);
   btn_fwd_.set_sensitive(shows);
   seek_.set_sensitive(false);
+  seek_from_player_ = true;
+  seek_.set_value(0);
+  seek_from_player_ = false;
+  seek_lab_.set_text("0:00 / 0:00");
   fill_memory();
   refresh_presets();
   if (shows) {
