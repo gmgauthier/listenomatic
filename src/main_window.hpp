@@ -128,6 +128,7 @@ class MainWindow : public Gtk::Window {
   std::vector<Program> episodes_;
   struct HeardTrack {
     Glib::ustring title;
+    Glib::ustring date;
     Glib::ustring heard;
   };
   std::map<std::string, Glib::ustring> live_now_;

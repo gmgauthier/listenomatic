@@ -77,6 +77,7 @@ MainWindow::MainWindow()
   memory_btn_.set_direction(Gtk::ARROW_DOWN);
   memory_btn_.get_style_context()->add_class("listenomatic-memory");
   memory_btn_.set_popup(memory_menu_);
+  memory_btn_.set_margin_end(8);
   preset_row_.pack_start(memory_btn_, Gtk::PACK_SHRINK);
   client_.pack_start(preset_row_, Gtk::PACK_SHRINK);
 
@@ -315,6 +316,7 @@ void MainWindow::fill_live_tracks()
   for (const auto& t : it->second) {
     auto row = *program_store_->append();
     row[program_cols_.title] = t.title;
+    row[program_cols_.date] = t.date;
     row[program_cols_.length] = t.heard;
   }
 }
@@ -787,7 +789,9 @@ void MainWindow::on_player_title(const Glib::ustring& title)
     auto& heard = live_heard_[st->url];
     HeardTrack rec;
     rec.title = now;
-    rec.heard = Glib::DateTime::create_now_local().format("%H:%M");
+    const auto when = Glib::DateTime::create_now_local();
+    rec.date = when.format("%Y-%m-%d");
+    rec.heard = when.format("%H:%M");
     heard.insert(heard.begin(), std::move(rec));
     constexpr int kMax = 80;
     if (static_cast<int>(heard.size()) > kMax)
