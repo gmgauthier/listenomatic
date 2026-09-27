@@ -11,7 +11,17 @@ Suite design: `lcos-projects/LISTEN-O-MATIC.md`
 
 ## Status (2026-09-27)
 
-**M1 in progress** on `feature/m1-live-stream`. M0 window is on `feature/m0-window`. First-run Memory is seeded from `data/samples.ini` (shipped sample streams, not a GoStations importer). Lunduke Journal RSS is the M4 sample show — not this slice.
+Unreleased. `master` is Unlicense only. Do not tag until M6.
+
+| Slice | Branch / PR | State |
+|---|---|---|
+| **M0** Window | `feature/m0-window` — Gitea #1 | Done. Deck chrome. Not merged. |
+| **M1** Live play | `feature/m1-live-stream` — Gitea #2 (on M0) | Done. playbin, Add URL, Memory, volume, LCD name, ICY marquee. Not merged. |
+| **M2** Presets | — | Next. Punch 1–6, Store on Preset. Memory already lists and persists. |
+| **M3** Find live | — | radio-browser search in Add Station. |
+| **M4** One show | — | RSS, program list, enclosure, seek. Sample feed: Lunduke Journal `https://api.substack.com/feed/podcast/462466.rss`. |
+| **M5** Polish | — | Last program, window size, in-process refresh. ICY title already in M1. |
+| **M6** Package | — | `scripts/release.sh`, tag `v0.1.0`. |
 
 ## 1. Locked decisions
 
@@ -60,13 +70,13 @@ Preset buttons are ordinary `Gtk::Button`s. Do not draw a photorealistic car ste
 
 v1 is M0 through M6. Do not open download-cache, queues, or video until this set has been lived with.
 
-### M0 — Window (this slice)
+### M0 — Window
 
-Menus, band switch, six empty presets, Memory combo, LCD well, transport stubs, About. Add Station dialog is chrome only (no fetch). Matches the Deck mockup. No HTTP. No playbin.
+Menus, band switch, six empty presets, Memory combo, LCD well, transport stubs, About. Matches the Deck mockup. **Done** on `feature/m0-window`.
 
-### M1 — One live stream (this slice)
+### M1 — One live stream
 
-Add a stream URL; Play / Stop; volume into playbin; LCD shows the name. GStreamer `playbin`, audio only. First-run Memory is filled from `data/samples.ini` so there is something to play. Presets stay empty until M2. Shows stay stub until M4.
+Add a stream URL; Play / Stop; volume into playbin; LCD shows the name. First-run Memory from `data/samples.ini` (sample URLs, not a GoStations importer). Long ICY titles marquee in the LCD; the window does not grow. **Done** on `feature/m1-live-stream`. Presets stay empty until M2. Shows stay stub until M4.
 
 ### M2 — Presets + memory
 

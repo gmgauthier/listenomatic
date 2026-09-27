@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**M1 in progress.** M0 window plus live playbin. First-run Memory is seeded from `data/samples.ini`. Shows / presets are later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**M1 done, unreleased.** Live playbin, Memory, ICY marquee. Presets and Shows are later. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|
