@@ -18,7 +18,16 @@ MainWindow::MainWindow()
 {
   set_title("Listen-O-Matic");
   set_resizable(false);
-  set_size_request(628, -1);
+  set_size_request(720, 500);
+  set_default_size(720, 500);
+  {
+    Gdk::Geometry geom;
+    geom.min_width = 720;
+    geom.max_width = 720;
+    geom.min_height = 500;
+    geom.max_height = 500;
+    set_geometry_hints(*this, geom, Gdk::HINT_MIN_SIZE | Gdk::HINT_MAX_SIZE);
+  }
   set_border_width(0);
   get_style_context()->add_class("listenomatic-window");
 
@@ -56,16 +65,28 @@ MainWindow::MainWindow()
 
   for (int i = 0; i < 6; ++i) {
     presets_[static_cast<std::size_t>(i)].set_label(Glib::ustring::compose("%1\n—", i + 1));
-    presets_[static_cast<std::size_t>(i)].set_size_request(72, 44);
+    presets_[static_cast<std::size_t>(i)].set_size_request(68, 44);
+    presets_[static_cast<std::size_t>(i)].get_style_context()->add_class("listenomatic-preset");
+    presets_[static_cast<std::size_t>(i)].set_hexpand(true);
     presets_[static_cast<std::size_t>(i)].signal_clicked().connect([this, i]() { on_preset(i); });
     preset_row_.pack_start(presets_[static_cast<std::size_t>(i)], Gtk::PACK_EXPAND_WIDGET);
   }
-  memory_.set_size_request(92, 44);
+  memory_.set_size_request(128, 44);
+  memory_.get_style_context()->add_class("listenomatic-memory");
+  memory_.set_hexpand(false);
+  for (auto* cell : memory_.get_cells()) {
+    if (auto* text = dynamic_cast<Gtk::CellRendererText*>(cell)) {
+      text->property_ellipsize() = Pango::ELLIPSIZE_END;
+      text->property_width_chars() = 16;
+    }
+  }
   memory_changed_ = memory_.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::on_memory));
   preset_row_.pack_start(memory_, Gtk::PACK_SHRINK);
   client_.pack_start(preset_row_, Gtk::PACK_SHRINK);
 
   lcd_box_.get_style_context()->add_class("listenomatic-lcd");
+  lcd_box_.set_size_request(-1, 88);
+  lcd_.get_style_context()->add_class("listenomatic-lcd");
   lcd_.set_border_width(10);
   lcd_station_.set_xalign(0);
   lcd_station_.set_ellipsize(Pango::ELLIPSIZE_END);
@@ -99,10 +120,6 @@ MainWindow::MainWindow()
   seek_.set_hexpand(true);
   seek_.set_sensitive(false);
   seek_changed_ = seek_.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_seek));
-  seek_.set_no_show_all();
-  seek_lab_.set_no_show_all();
-  btn_back_.set_no_show_all();
-  btn_fwd_.set_no_show_all();
   transport_.pack_start(btn_stop_, Gtk::PACK_SHRINK);
   transport_.pack_start(btn_back_, Gtk::PACK_SHRINK);
   transport_.pack_start(btn_play_, Gtk::PACK_SHRINK);
@@ -156,6 +173,7 @@ MainWindow::MainWindow()
     live_.set_active(true);
   show_all();
   apply_band();
+  resize(720, 500);
   settings_.save();
 }
 
@@ -314,7 +332,7 @@ void MainWindow::select_station(int index, bool play)
   refresh_presets();
   settings_.save();
   if (on_shows()) {
-    load_show_feed(play);
+    load_show_feed(false);
     return;
   }
   if (play)
@@ -348,7 +366,8 @@ void MainWindow::refresh_face()
   }
   lcd_station_.set_text(st->name);
   if (shows) {
-    if (current_program_ >= 0 && current_program_ < static_cast<int>(episodes_.size()))
+    if ((playing || player_.state() == Player::State::Paused) && current_program_ >= 0 &&
+        current_program_ < static_cast<int>(episodes_.size()))
       lcd_now_.set_text(episodes_[static_cast<std::size_t>(current_program_)].title);
     else if (!playing)
       lcd_now_.set_text("");
@@ -370,29 +389,33 @@ void MainWindow::apply_band()
   settings_.band = shows ? Band::Shows : Band::Live;
   save_progress();
   player_.stop();
-  seek_.set_visible(shows);
-  seek_lab_.set_visible(shows);
-  btn_back_.set_visible(shows);
-  btn_fwd_.set_visible(shows);
+  btn_back_.set_sensitive(shows);
+  btn_fwd_.set_sensitive(shows);
   seek_.set_sensitive(false);
+  fill_memory();
+  refresh_presets();
   if (shows) {
-    programs_frame_.show();
-    fill_memory();
-    refresh_presets();
     if (settings_.current_show >= 0)
       load_show_feed(false);
     else {
       episodes_.clear();
       program_store_->clear();
+      auto row = *program_store_->append();
+      row[program_cols_.title] = "No show — Station → Add…";
       refresh_face();
     }
   } else {
-    programs_frame_.hide();
     episodes_.clear();
-    fill_memory();
-    refresh_presets();
+    program_store_->clear();
+    auto row = *program_store_->append();
+    row[program_cols_.title] = "Live — no program guide";
     refresh_face();
   }
+  Glib::signal_idle().connect_once([this]() {
+    resize(720, 500);
+    if (auto gdk = get_window())
+      gdk->resize(720, 500);
+  });
   settings_.save();
 }
 
@@ -533,6 +556,7 @@ void MainWindow::apply_feed(PodcastFeed feed, std::string error, bool play_lates
     play_program(current_program_);
   else
     set_status(Glib::ustring::compose("%1 programs", episodes_.size()));
+  Glib::signal_idle().connect_once([this]() { resize(720, 500); });
 }
 
 void MainWindow::set_status(const Glib::ustring& text)
@@ -778,7 +802,7 @@ void MainWindow::on_seek()
 
 void MainWindow::on_program_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn*)
 {
-  if (path.empty())
+  if (!on_shows() || path.empty())
     return;
   play_program(path[0]);
 }

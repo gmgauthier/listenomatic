@@ -6,8 +6,11 @@ window.listenomatic-window {
   background-color: #E6E6E1;
 }
 
+eventbox.listenomatic-lcd,
+box.listenomatic-lcd,
 .listenomatic-lcd {
   background-color: #0B1D38;
+  background-image: none;
   min-height: 88px;
 }
 
@@ -35,8 +38,16 @@ window.listenomatic-window {
   font-size: 12px;
 }
 
+button.listenomatic-preset {
+  min-width: 72px;
+}
+
 button.listenomatic-preset-on {
   font-weight: bold;
+}
+
+combobox.listenomatic-memory {
+  min-width: 140px;
 }
 
 statusbar {
