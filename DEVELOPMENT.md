@@ -18,9 +18,9 @@ Unreleased. `master` is Unlicense only. Do not tag until M7.
 | **M0** Window | `feature/m0-window` — Gitea #1 | Done. Deck chrome. Not merged. |
 | **M1** Live play | `feature/m1-live-stream` — Gitea #2 (on M0) | Done. playbin, Add URL, Memory, volume, LCD name, ICY marquee. Not merged. |
 | **M2** Presets | `feature/m2-presets` | Done. Punch 1–6, Store on Preset, Remove. Not merged. |
-| **M3** | — | *Parked.* radio-browser in Add Station is superseded by Catalog. |
+| **M3** Find live | — | Next. Look up one live stream inside Add… (radio-browser). Not Catalog. |
 | **M4** One show | — | RSS, program list, enclosure, seek. Sample: Lunduke Journal `https://api.substack.com/feed/podcast/462466.rss`. |
-| **M5** Catalog | — | Station → Catalog… separate window. Browse radio-browser.info (live) and a popular-podcasts list (shows). Select adds to Memory. Not the home screen. |
+| **M5** Catalog | — | Station → Catalog… separate window. Browse live *and* podcasts. |
 | **M6** Polish | — | Last program, window size, in-process refresh. ICY title already in M1. |
 | **M7** Package | — | `scripts/release.sh`, tag `v0.1.0`. |
 
@@ -83,9 +83,13 @@ Add a stream URL; Play / Stop; volume into playbin; LCD shows the name. First-ru
 
 Punch 1–6. Store on Preset. Labels show a short name. Independent live preset bank (Shows bank comes with M4). Memory combo and last station / volume already persist from M1.
 
-### M3 — (parked)
+### M3 — Find live (in Add…)
 
-Add Station search against radio-browser.info. **Superseded by Catalog (M5).** Add Station stays paste-a-URL.
+Station → **Add…** is Tune: paste a URL, or look up **one live stream**. When Type is **Live stream**, a **Search radio-browser** field (not a generic “Find”) queries radio-browser.info. Pick a row; name + URL fill; Add puts it in Memory. Down stations pruned. User-agent set.
+
+When Type is **Show**, that search is hidden — RSS URL only (M4). Add is never a podcast directory.
+
+Do not label the button **Find**. **Search** + “radio-browser.info” so it does not collide with Catalog.
 
 ### M4 — One show
 
@@ -93,12 +97,12 @@ Add an RSS URL; program list fills; play enclosure; seek. Skip feeds with no aud
 
 ### M5 — Catalog
 
-Station → **Catalog…** opens a **separate window** (not the home screen, not the Add dialog). Two directories:
+Station → **Catalog…** opens a **separate window** (not the home screen, not the Add dialog). You **browse**:
 
-- **Live:** radio-browser.info. Down stations pruned. User-agent set.
-- **Shows:** a list of popular podcasts (RSS URLs). Not Dispatch’s text feeds.
+- **Live stations** — radio-browser.info (same database as Add’s search, different verb: wander vs look up one).
+- **Podcasts** — a list of popular shows (RSS URLs). Not Dispatch’s text feeds.
 
-Select adds the station to Memory on the matching band. Store on Preset remains a face verb. Do not make Catalog the first thing you see.
+Select adds to Memory on the matching band. Store on Preset stays a face verb. Do not make Catalog the first thing you see.
 
 ### M6 — Polish
 
