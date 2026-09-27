@@ -15,6 +15,7 @@ gtkmm = dependency('gtkmm-3.0')
 gst = dependency('gstreamer-1.0')
 soup = dependency('libsoup-3.0')
 json_glib = dependency('json-glib-1.0')
+libxml = dependency('libxml-2.0')
 
 conf = configuration_data()
 conf.set_quoted('VERSION', meson.project_version())
@@ -40,11 +41,12 @@ executable(
   'src/marquee.cpp',
   'src/fetch.cpp',
   'src/radiobrowser.cpp',
+  'src/rss.cpp',
   'src/add_dialog.cpp',
   'src/main_window.cpp',
   'src/about_dialog.cpp',
   include_directories: inc,
-  dependencies: [gtkmm, gst, soup, json_glib],
+  dependencies: [gtkmm, gst, soup, json_glib, libxml],
   install: true,
   install_dir: get_option('bindir'),
 )

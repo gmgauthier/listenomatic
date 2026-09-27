@@ -19,7 +19,7 @@ Unreleased. `master` is Unlicense only. Do not tag until M7.
 | **M1** Live play | `feature/m1-live-stream` — Gitea #2 (on M0) | Done. playbin, Add URL, Memory, volume, LCD name, ICY marquee. Not merged. |
 | **M2** Presets | `feature/m2-presets` | Done. Punch 1–6, Store on Preset, Remove. Not merged. |
 | **M3** Find live | `feature/m3-find-live` | Done. Search radio-browser inside Add…. Not merged. |
-| **M4** One show | — | RSS, program list, enclosure, seek. Sample: Lunduke Journal `https://api.substack.com/feed/podcast/462466.rss`. |
+| **M4** One show | `feature/m4-one-show` | Done. RSS, programs, enclosure, seek. Not merged. |
 | **M5** Catalog | — | Station → Catalog… separate window. Browse live *and* podcasts. |
 | **M6** Polish | — | Last program, window size, in-process refresh. ICY title already in M1. |
 | **M7** Package | — | `scripts/release.sh`, tag `v0.1.0`. |

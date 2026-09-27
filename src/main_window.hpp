@@ -4,32 +4,48 @@
 
 #include "marquee.hpp"
 #include "player.hpp"
+#include "program.hpp"
 #include "settings.hpp"
 
 #include <gtkmm.h>
 
 #include <array>
+#include <memory>
+#include <vector>
 
 namespace listenomatic {
 
 class MainWindow : public Gtk::Window {
  public:
   MainWindow();
+  ~MainWindow() override;
 
  private:
   void load_css();
   void build_menu();
   void apply_band();
+  bool on_shows() const;
+  std::vector<Station>& stations();
+  const std::vector<Station>& stations() const;
+  int& current_index();
+  std::array<int, 6>& presets();
   void fill_memory();
   void refresh_presets();
   void refresh_face();
   void play_current();
-  void select_live(int index, bool play);
+  void play_program(int index);
+  void select_station(int index, bool play);
+  void load_show_feed(bool play_latest);
+  void apply_feed(PodcastFeed feed, std::string error, bool play_latest);
+  void fill_programs();
   const Station* current() const;
   void set_status(const Glib::ustring& text);
   void on_player_state(Player::State state);
   void on_player_error(const Glib::ustring& msg);
   void on_player_title(const Glib::ustring& title);
+  void on_player_position(gint64 pos, gint64 dur);
+  void on_seek();
+  void on_program_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* col);
   void on_quit();
   void on_about();
   void on_station_add();
@@ -51,6 +67,7 @@ class MainWindow : public Gtk::Window {
   Player player_;
   Glib::RefPtr<Gtk::AccelGroup> accel_;
   sigc::connection memory_changed_;
+  sigc::connection seek_changed_;
 
   Gtk::Box root_{Gtk::ORIENTATION_VERTICAL, 0};
   Gtk::MenuBar menubar_;
@@ -90,15 +107,22 @@ class MainWindow : public Gtk::Window {
       add(title);
       add(date);
       add(length);
+      add(url);
     }
     Gtk::TreeModelColumn<Glib::ustring> title;
     Gtk::TreeModelColumn<Glib::ustring> date;
     Gtk::TreeModelColumn<Glib::ustring> length;
+    Gtk::TreeModelColumn<Glib::ustring> url;
   };
   ProgramColumns program_cols_;
   Glib::RefPtr<Gtk::ListStore> program_store_;
 
   Gtk::Statusbar status_;
+
+  std::vector<Program> episodes_;
+  int current_program_ = -1;
+  bool seek_from_player_ = false;
+  std::shared_ptr<bool> feed_alive_;
 };
 
 }  // namespace listenomatic

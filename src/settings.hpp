@@ -18,6 +18,9 @@ struct Settings {
   std::vector<Station> live;
   int current_live = -1;
   std::array<int, 6> live_presets{{-1, -1, -1, -1, -1, -1}};
+  std::vector<Station> shows;
+  int current_show = -1;
+  std::array<int, 6> show_presets{{-1, -1, -1, -1, -1, -1}};
 
   void load();
   void save() const;

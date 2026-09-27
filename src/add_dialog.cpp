@@ -50,6 +50,7 @@ AddDialog::AddDialog(Gtk::Window& parent)
   url_row->pack_start(url_, Gtk::PACK_EXPAND_WIDGET);
 
   auto* qrow = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL, 6));
+  url_.set_placeholder_text("stream URL or podcast RSS");
   query_.set_placeholder_text("name, place, or call letters");
   query_.signal_activate().connect(sigc::mem_fun(*this, &AddDialog::on_search));
   search_btn_.signal_clicked().connect(sigc::mem_fun(*this, &AddDialog::on_search));

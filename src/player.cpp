@@ -34,6 +34,7 @@ Player::Player()
 
 Player::~Player()
 {
+  stop_position_timer();
   if (bus_watch_id_) {
     g_source_remove(bus_watch_id_);
     bus_watch_id_ = 0;
@@ -58,6 +59,8 @@ bool Player::open(const std::string& url)
   }
   gst_element_set_state(playbin_, GST_STATE_NULL);
   uri_ = uri;
+  position_ = 0;
+  duration_ = 0;
   g_object_set(playbin_, "uri", uri_.c_str(), "volume", volume_, nullptr);
   return true;
 }
@@ -80,8 +83,58 @@ void Player::stop()
 {
   if (!playbin_)
     return;
+  stop_position_timer();
   gst_element_set_state(playbin_, GST_STATE_NULL);
+  position_ = 0;
   set_state(State::Stopped);
+  signal_position_.emit(position_, duration_);
+}
+
+void Player::seek(gint64 ns)
+{
+  if (!playbin_ || uri_.empty() || ns < 0)
+    return;
+  gst_element_seek_simple(playbin_, GST_FORMAT_TIME,
+                          static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
+                          ns);
+  position_ = ns;
+}
+
+void Player::start_position_timer()
+{
+  if (pos_timer_id_)
+    return;
+  pos_timer_id_ = g_timeout_add(250, &Player::on_position_timeout, this);
+}
+
+void Player::stop_position_timer()
+{
+  if (!pos_timer_id_)
+    return;
+  g_source_remove(pos_timer_id_);
+  pos_timer_id_ = 0;
+}
+
+void Player::query_position()
+{
+  if (!playbin_)
+    return;
+  gint64 pos = 0;
+  gint64 dur = 0;
+  if (!gst_element_query_position(playbin_, GST_FORMAT_TIME, &pos))
+    pos = position_;
+  if (!gst_element_query_duration(playbin_, GST_FORMAT_TIME, &dur))
+    dur = duration_;
+  position_ = pos;
+  if (dur > 0)
+    duration_ = dur;
+  signal_position_.emit(position_, duration_);
+}
+
+gboolean Player::on_position_timeout(gpointer self)
+{
+  static_cast<Player*>(self)->query_position();
+  return TRUE;
 }
 
 void Player::set_volume(double volume)
@@ -100,6 +153,10 @@ void Player::set_state(State state)
   if (state_ == state)
     return;
   state_ = state;
+  if (state_ == State::Playing)
+    start_position_timer();
+  else if (state_ == State::Stopped)
+    stop_position_timer();
   signal_state_changed_.emit(state_);
 }
 
@@ -120,6 +177,9 @@ gboolean Player::on_bus(GstBus*, GstMessage* msg, gpointer self)
         p->set_state(State::Stopped);
       break;
     }
+    case GST_MESSAGE_EOS:
+      p->stop();
+      break;
     case GST_MESSAGE_ERROR: {
       GError* err = nullptr;
       gst_message_parse_error(msg, &err, nullptr);

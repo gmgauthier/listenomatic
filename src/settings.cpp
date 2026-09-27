@@ -17,7 +17,7 @@ std::string config_path()
   return Glib::build_filename(config_dir(), "listenomatic.ini");
 }
 
-void load_live_group(Glib::KeyFile& kf, const char* group, std::vector<Station>* out)
+void load_station_group(Glib::KeyFile& kf, const char* group, std::vector<Station>* out)
 {
   if (!kf.has_group(group) || !kf.has_key(group, "count"))
     return;
@@ -46,6 +46,57 @@ void load_live_group(Glib::KeyFile& kf, const char* group, std::vector<Station>*
   }
 }
 
+void load_presets(Glib::KeyFile& kf, const char* group, const std::vector<Station>& list,
+                  std::array<int, 6>* presets)
+{
+  bool any = false;
+  for (int i = 0; i < 6; ++i) {
+    (*presets)[static_cast<std::size_t>(i)] = -1;
+    const Glib::ustring k = Glib::ustring::compose("preset%1", i);
+    try {
+      if (!kf.has_group(group) || !kf.has_key(group, k))
+        continue;
+    } catch (const Glib::Error&) {
+      continue;
+    }
+    any = true;
+    try {
+      const int idx = kf.get_integer(group, k);
+      if (idx >= 0 && idx < static_cast<int>(list.size()))
+        (*presets)[static_cast<std::size_t>(i)] = idx;
+    } catch (const Glib::Error&) {
+    }
+  }
+  if (!any) {
+    const int n = std::min(6, static_cast<int>(list.size()));
+    for (int i = 0; i < n; ++i)
+      (*presets)[static_cast<std::size_t>(i)] = i;
+  }
+}
+
+void save_station_group(Glib::KeyFile& kf, const char* group, const std::vector<Station>& list,
+                        int current, const std::array<int, 6>& presets)
+{
+  kf.set_integer(group, "count", static_cast<int>(list.size()));
+  kf.set_integer(group, "current", current);
+  for (int i = 0; i < static_cast<int>(list.size()); ++i) {
+    kf.set_string(group, Glib::ustring::compose("name%1", i),
+                  list[static_cast<std::size_t>(i)].name);
+    kf.set_string(group, Glib::ustring::compose("url%1", i), list[static_cast<std::size_t>(i)].url);
+  }
+  for (int i = 0; i < 6; ++i) {
+    kf.set_integer(group, Glib::ustring::compose("preset%1", i),
+                   presets[static_cast<std::size_t>(i)]);
+  }
+}
+
+int clamp_current(int cur, const std::vector<Station>& list)
+{
+  if (cur < 0 || cur >= static_cast<int>(list.size()))
+    return list.empty() ? -1 : 0;
+  return cur;
+}
+
 }  // namespace
 
 void Settings::load()
@@ -72,49 +123,36 @@ void Settings::load()
   if (volume > 1.0)
     volume = 1.0;
 
-  load_live_group(kf, "live", &live);
-  if (live.empty()) {
-    Glib::KeyFile samples;
-    const std::string sp = find_data_file("samples.ini");
-    if (!sp.empty()) {
-      try {
-        samples.load_from_file(sp);
-        load_live_group(samples, "live", &live);
-      } catch (const Glib::Error&) {
-      }
+  Glib::KeyFile samples;
+  const std::string sp = find_data_file("samples.ini");
+  if (!sp.empty()) {
+    try {
+      samples.load_from_file(sp);
+    } catch (const Glib::Error&) {
     }
   }
+
+  load_station_group(kf, "live", &live);
+  if (live.empty())
+    load_station_group(samples, "live", &live);
   try {
     if (kf.has_key("live", "current"))
       current_live = kf.get_integer("live", "current");
   } catch (const Glib::Error&) {
   }
-  if (current_live < 0 || current_live >= static_cast<int>(live.size()))
-    current_live = live.empty() ? -1 : 0;
+  current_live = clamp_current(current_live, live);
+  load_presets(kf, "live", live, &live_presets);
 
-  bool any_preset_key = false;
-  for (int i = 0; i < 6; ++i) {
-    const Glib::ustring k = Glib::ustring::compose("preset%1", i);
-    live_presets[static_cast<std::size_t>(i)] = -1;
-    try {
-      if (!kf.has_group("live") || !kf.has_key("live", k))
-        continue;
-    } catch (const Glib::Error&) {
-      continue;
-    }
-    any_preset_key = true;
-    try {
-      const int idx = kf.get_integer("live", k);
-      if (idx >= 0 && idx < static_cast<int>(live.size()))
-        live_presets[static_cast<std::size_t>(i)] = idx;
-    } catch (const Glib::Error&) {
-    }
+  load_station_group(kf, "shows", &shows);
+  if (shows.empty())
+    load_station_group(samples, "shows", &shows);
+  try {
+    if (kf.has_key("shows", "current"))
+      current_show = kf.get_integer("shows", "current");
+  } catch (const Glib::Error&) {
   }
-  if (!any_preset_key) {
-    const int n = std::min(6, static_cast<int>(live.size()));
-    for (int i = 0; i < n; ++i)
-      live_presets[static_cast<std::size_t>(i)] = i;
-  }
+  current_show = clamp_current(current_show, shows);
+  load_presets(kf, "shows", shows, &show_presets);
 }
 
 void Settings::save() const
@@ -122,18 +160,8 @@ void Settings::save() const
   Glib::KeyFile kf;
   kf.set_string("window", "band", band == Band::Shows ? "shows" : "live");
   kf.set_double("audio", "volume", volume);
-  kf.set_integer("live", "count", static_cast<int>(live.size()));
-  kf.set_integer("live", "current", current_live);
-  for (int i = 0; i < static_cast<int>(live.size()); ++i) {
-    kf.set_string("live", Glib::ustring::compose("name%1", i),
-                  live[static_cast<std::size_t>(i)].name);
-    kf.set_string("live", Glib::ustring::compose("url%1", i),
-                  live[static_cast<std::size_t>(i)].url);
-  }
-  for (int i = 0; i < 6; ++i) {
-    kf.set_integer("live", Glib::ustring::compose("preset%1", i),
-                   live_presets[static_cast<std::size_t>(i)]);
-  }
+  save_station_group(kf, "live", live, current_live, live_presets);
+  save_station_group(kf, "shows", shows, current_show, show_presets);
   try {
     kf.save_to_file(config_path());
   } catch (const Glib::Error&) {

@@ -11,7 +11,8 @@ Build-Depends:
  libgtkmm-3.0-dev,
  libgstreamer1.0-dev,
  libsoup-3.0-dev,
- libjson-glib-dev
+ libjson-glib-dev,
+ libxml2-dev
 Standards-Version: 4.7.0
 Homepage: https://github.com/gmgauthier/listenomatic
 Vcs-Git: https://github.com/gmgauthier/listenomatic.git
