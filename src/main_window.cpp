@@ -18,14 +18,14 @@ MainWindow::MainWindow()
 {
   set_title("Listen-O-Matic");
   set_resizable(false);
-  set_size_request(720, 500);
-  set_default_size(720, 500);
+  set_size_request(720, 540);
+  set_default_size(720, 540);
   {
     Gdk::Geometry geom;
     geom.min_width = 720;
     geom.max_width = 720;
-    geom.min_height = 500;
-    geom.max_height = 500;
+    geom.min_height = 540;
+    geom.max_height = 540;
     set_geometry_hints(*this, geom, Gdk::HINT_MIN_SIZE | Gdk::HINT_MAX_SIZE);
   }
   set_border_width(0);
@@ -71,17 +71,13 @@ MainWindow::MainWindow()
     presets_[static_cast<std::size_t>(i)].signal_clicked().connect([this, i]() { on_preset(i); });
     preset_row_.pack_start(presets_[static_cast<std::size_t>(i)], Gtk::PACK_EXPAND_WIDGET);
   }
-  memory_.set_size_request(128, 44);
-  memory_.get_style_context()->add_class("listenomatic-memory");
-  memory_.set_hexpand(false);
-  for (auto* cell : memory_.get_cells()) {
-    if (auto* text = dynamic_cast<Gtk::CellRendererText*>(cell)) {
-      text->property_ellipsize() = Pango::ELLIPSIZE_END;
-      text->property_width_chars() = 16;
-    }
-  }
-  memory_changed_ = memory_.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::on_memory));
-  preset_row_.pack_start(memory_, Gtk::PACK_SHRINK);
+  memory_btn_.set_label("▾");
+  memory_btn_.set_tooltip_text("Memory");
+  memory_btn_.set_size_request(36, 44);
+  memory_btn_.set_direction(Gtk::ARROW_DOWN);
+  memory_btn_.get_style_context()->add_class("listenomatic-memory");
+  memory_btn_.set_popup(memory_menu_);
+  preset_row_.pack_start(memory_btn_, Gtk::PACK_SHRINK);
   client_.pack_start(preset_row_, Gtk::PACK_SHRINK);
 
   lcd_box_.get_style_context()->add_class("listenomatic-lcd");
@@ -158,9 +154,10 @@ MainWindow::MainWindow()
   programs_frame_.add(programs_scroll_);
   client_.pack_start(programs_frame_, Gtk::PACK_EXPAND_WIDGET);
 
+  status_.set_size_request(-1, 24);
   root_.pack_start(menubar_, Gtk::PACK_SHRINK);
   root_.pack_start(client_, Gtk::PACK_EXPAND_WIDGET);
-  root_.pack_start(status_, Gtk::PACK_SHRINK);
+  root_.pack_end(status_, Gtk::PACK_SHRINK);
   add(root_);
 
   live_.signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_band_live));
@@ -173,7 +170,7 @@ MainWindow::MainWindow()
     live_.set_active(true);
   show_all();
   apply_band();
-  resize(720, 500);
+  resize(720, 540);
   settings_.save();
 }
 
@@ -278,23 +275,48 @@ std::array<int, 6>& MainWindow::presets()
 
 void MainWindow::fill_memory()
 {
-  memory_changed_.block();
-  memory_.remove_all();
+  const auto children = memory_menu_.get_children();
+  for (auto* w : children)
+    memory_menu_.remove(*w);
   const auto& list = stations();
   const int cur = on_shows() ? settings_.current_show : settings_.current_live;
   if (list.empty()) {
-    memory_.append("-1", "(empty)");
-    memory_.set_active(0);
+    auto* empty = Gtk::manage(new Gtk::MenuItem("(empty)"));
+    empty->set_sensitive(false);
+    memory_menu_.append(*empty);
   } else {
     for (int i = 0; i < static_cast<int>(list.size()); ++i) {
-      memory_.append(Glib::ustring::compose("%1", i), list[static_cast<std::size_t>(i)].name);
+      auto* item = Gtk::manage(new Gtk::MenuItem(list[static_cast<std::size_t>(i)].name));
+      if (i == cur)
+        item->set_label("●  " + list[static_cast<std::size_t>(i)].name);
+      item->signal_activate().connect([this, i]() { on_memory_pick(i); });
+      memory_menu_.append(*item);
     }
-    if (cur >= 0)
-      memory_.set_active_id(Glib::ustring::compose("%1", cur));
-    else
-      memory_.set_active(0);
   }
-  memory_changed_.unblock();
+  memory_menu_.show_all();
+}
+
+void MainWindow::fill_live_tracks()
+{
+  program_store_->clear();
+  programs_frame_.set_label("Tracks");
+  const Station* st = current();
+  if (!st) {
+    auto row = *program_store_->append();
+    row[program_cols_.title] = "No station";
+    return;
+  }
+  const auto it = live_heard_.find(st->url);
+  if (it == live_heard_.end() || it->second.empty()) {
+    auto row = *program_store_->append();
+    row[program_cols_.title] = "Tracks appear here when the station sends titles";
+    return;
+  }
+  for (const auto& t : it->second) {
+    auto row = *program_store_->append();
+    row[program_cols_.title] = t.title;
+    row[program_cols_.length] = t.heard;
+  }
 }
 
 void MainWindow::refresh_presets()
@@ -337,8 +359,8 @@ void MainWindow::select_station(int index, bool play)
   }
   if (play)
     play_current();
-  else
-    refresh_face();
+  fill_live_tracks();
+  refresh_face();
 }
 
 const Station* MainWindow::current() const
@@ -360,7 +382,7 @@ void MainWindow::refresh_face()
   if (!st) {
     lcd_station_.set_text("No station");
     lcd_now_.set_text("");
-    lcd_hint_.set_text("Station → Add… or pick Memory.");
+    lcd_hint_.set_text("Station → Add… or Memory ▾");
     set_status(shows ? "No shows in memory" : "No stations in memory");
     return;
   }
@@ -395,6 +417,7 @@ void MainWindow::apply_band()
   fill_memory();
   refresh_presets();
   if (shows) {
+    programs_frame_.set_label("Programs");
     if (settings_.current_show >= 0)
       load_show_feed(false);
     else {
@@ -405,16 +428,13 @@ void MainWindow::apply_band()
       refresh_face();
     }
   } else {
-    episodes_.clear();
-    program_store_->clear();
-    auto row = *program_store_->append();
-    row[program_cols_.title] = "Live — no program guide";
+    fill_live_tracks();
     refresh_face();
   }
   Glib::signal_idle().connect_once([this]() {
-    resize(720, 500);
+    resize(720, 540);
     if (auto gdk = get_window())
-      gdk->resize(720, 500);
+      gdk->resize(720, 540);
   });
   settings_.save();
 }
@@ -556,7 +576,7 @@ void MainWindow::apply_feed(PodcastFeed feed, std::string error, bool play_lates
     play_program(current_program_);
   else
     set_status(Glib::ustring::compose("%1 programs", episodes_.size()));
-  Glib::signal_idle().connect_once([this]() { resize(720, 500); });
+  Glib::signal_idle().connect_once([this]() { resize(720, 540); });
 }
 
 void MainWindow::set_status(const Glib::ustring& text)
@@ -617,8 +637,10 @@ void MainWindow::on_station_add()
   refresh_presets();
   if (on_shows())
     load_show_feed(false);
-  else
+  else {
+    fill_live_tracks();
     refresh_face();
+  }
 }
 
 void MainWindow::on_station_remove()
@@ -647,8 +669,10 @@ void MainWindow::on_station_remove()
   settings_.save();
   if (on_shows())
     load_show_feed(false);
-  else
+  else {
+    fill_live_tracks();
     refresh_face();
+  }
 }
 
 void MainWindow::on_store_preset(int slot)
@@ -728,12 +752,9 @@ void MainWindow::on_preset(int slot)
   select_station(idx, true);
 }
 
-void MainWindow::on_memory()
+void MainWindow::on_memory_pick(int index)
 {
-  const Glib::ustring id = memory_.get_active_id();
-  if (id.empty() || id == "-1")
-    return;
-  select_station(std::atoi(id.c_str()), true);
+  select_station(index, true);
 }
 
 void MainWindow::on_player_state(Player::State state)
@@ -753,9 +774,27 @@ void MainWindow::on_player_error(const Glib::ustring& msg)
 
 void MainWindow::on_player_title(const Glib::ustring& title)
 {
-  if (on_shows())
+  if (on_shows() || title.empty())
     return;
   lcd_now_.set_text(title);
+  const Station* st = current();
+  if (!st)
+    return;
+  Glib::ustring& now = live_now_[st->url];
+  if (now == title)
+    return;
+  if (!now.empty()) {
+    auto& heard = live_heard_[st->url];
+    HeardTrack rec;
+    rec.title = now;
+    rec.heard = Glib::DateTime::create_now_local().format("%H:%M");
+    heard.insert(heard.begin(), std::move(rec));
+    constexpr int kMax = 80;
+    if (static_cast<int>(heard.size()) > kMax)
+      heard.resize(static_cast<std::size_t>(kMax));
+  }
+  now = title;
+  fill_live_tracks();
 }
 
 void MainWindow::on_player_position(gint64 pos, gint64 dur)

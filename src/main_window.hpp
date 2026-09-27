@@ -10,6 +10,7 @@
 #include <gtkmm.h>
 
 #include <array>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -30,6 +31,7 @@ class MainWindow : public Gtk::Window {
   int& current_index();
   std::array<int, 6>& presets();
   void fill_memory();
+  void fill_live_tracks();
   void refresh_presets();
   void refresh_face();
   void play_current();
@@ -59,7 +61,7 @@ class MainWindow : public Gtk::Window {
   void on_stop();
   void on_play();
   void on_preset(int slot);
-  void on_memory();
+  void on_memory_pick(int index);
 
   Gtk::MenuItem* add_item(Gtk::Menu& menu, const Glib::ustring& label,
                           const sigc::slot<void()>& slot, guint key = 0,
@@ -68,7 +70,6 @@ class MainWindow : public Gtk::Window {
   Settings settings_;
   Player player_;
   Glib::RefPtr<Gtk::AccelGroup> accel_;
-  sigc::connection memory_changed_;
   sigc::connection seek_changed_;
 
   Gtk::Box root_{Gtk::ORIENTATION_VERTICAL, 0};
@@ -83,7 +84,8 @@ class MainWindow : public Gtk::Window {
 
   Gtk::Box preset_row_{Gtk::ORIENTATION_HORIZONTAL, 4};
   std::array<Gtk::Button, 6> presets_;
-  Gtk::ComboBoxText memory_;
+  Gtk::MenuButton memory_btn_;
+  Gtk::Menu memory_menu_;
 
   Gtk::EventBox lcd_box_;
   Gtk::Box lcd_{Gtk::ORIENTATION_VERTICAL, 4};
@@ -124,6 +126,12 @@ class MainWindow : public Gtk::Window {
   Gtk::Statusbar status_;
 
   std::vector<Program> episodes_;
+  struct HeardTrack {
+    Glib::ustring title;
+    Glib::ustring heard;
+  };
+  std::map<std::string, Glib::ustring> live_now_;
+  std::map<std::string, std::vector<HeardTrack>> live_heard_;
   int current_program_ = -1;
   gint64 pending_resume_ns_ = 0;
   bool seek_from_player_ = false;

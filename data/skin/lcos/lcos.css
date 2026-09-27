@@ -46,8 +46,8 @@ button.listenomatic-preset-on {
   font-weight: bold;
 }
 
-combobox.listenomatic-memory {
-  min-width: 140px;
+button.listenomatic-memory {
+  min-width: 36px;
 }
 
 statusbar {
