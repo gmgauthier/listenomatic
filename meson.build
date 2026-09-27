@@ -41,6 +41,7 @@ executable(
   'src/marquee.cpp',
   'src/fetch.cpp',
   'src/radiobrowser.cpp',
+  'src/itunes.cpp',
   'src/rss.cpp',
   'src/add_dialog.cpp',
   'src/catalog_window.cpp',

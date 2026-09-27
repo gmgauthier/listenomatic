@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Unlicense */
 
 #include "catalog_window.hpp"
+#include "itunes.hpp"
 #include "paths.hpp"
 #include "radiobrowser.hpp"
 
@@ -16,7 +17,8 @@ namespace listenomatic {
 
 CatalogWindow::CatalogWindow()
     : alive_(std::make_shared<bool>(true)),
-      cancel_(Gio::Cancellable::create())
+      live_cancel_(Gio::Cancellable::create()),
+      show_cancel_(Gio::Cancellable::create())
 {
   set_title("Catalog");
   set_default_size(640, 480);
@@ -71,16 +73,30 @@ CatalogWindow::CatalogWindow()
   live_page_.pack_start(live_scroll_, Gtk::PACK_EXPAND_WIDGET);
 
   auto* show_qrow = Gtk::manage(new Gtk::Box(Gtk::ORIENTATION_HORIZONTAL, 6));
-  show_filter_.set_placeholder_text("filter by name");
-  show_filter_.signal_changed().connect(sigc::mem_fun(*this, &CatalogWindow::on_podcast_filter));
-  show_qrow->pack_start(show_filter_, Gtk::PACK_EXPAND_WIDGET);
+  show_query_.set_placeholder_text("show name");
+  show_query_.signal_activate().connect(sigc::mem_fun(*this, &CatalogWindow::on_show_search));
+  show_query_.signal_changed().connect(sigc::mem_fun(*this, &CatalogWindow::on_show_query));
+  show_search_btn_.signal_clicked().connect(sigc::mem_fun(*this, &CatalogWindow::on_show_search));
+  show_starter_btn_.signal_clicked().connect(sigc::mem_fun(*this, &CatalogWindow::on_show_starter));
+  show_qrow->pack_start(show_query_, Gtk::PACK_EXPAND_WIDGET);
+  show_qrow->pack_start(show_search_btn_, Gtk::PACK_SHRINK);
+  show_qrow->pack_start(show_starter_btn_, Gtk::PACK_SHRINK);
   show_status_.set_xalign(0);
+  show_status_.set_text("Starter list. Type to filter, or Search iTunes for more.");
   show_store_ = Gtk::ListStore::create(show_cols_);
   show_view_.set_model(show_store_);
   show_view_.append_column("Show", show_cols_.name);
-  show_view_.append_column("Place", show_cols_.place);
-  if (auto* c = show_view_.get_column(0))
+  show_view_.append_column("Kind", show_cols_.place);
+  if (auto* c = show_view_.get_column(0)) {
+    c->set_sizing(Gtk::TREE_VIEW_COLUMN_FIXED);
     c->set_expand(true);
+    c->set_min_width(220);
+  }
+  if (auto* c = show_view_.get_column(1)) {
+    c->set_sizing(Gtk::TREE_VIEW_COLUMN_FIXED);
+    c->set_fixed_width(110);
+  }
+  show_view_.set_fixed_height_mode(true);
   show_view_.signal_row_activated().connect(
       [this](const Gtk::TreeModel::Path&, Gtk::TreeViewColumn*) { on_add_clicked(); });
   show_scroll_.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -105,14 +121,15 @@ CatalogWindow::CatalogWindow()
   show_all();
 
   load_podcasts();
-  fill_podcasts("");
+  show_starter();
   on_live_popular();
 }
 
 CatalogWindow::~CatalogWindow()
 {
   *alive_ = false;
-  cancel_->cancel();
+  live_cancel_->cancel();
+  show_cancel_->cancel();
 }
 
 void CatalogWindow::load_podcasts()
@@ -168,39 +185,53 @@ void CatalogWindow::fill_live(const std::vector<Station>& hits)
   }
 }
 
-void CatalogWindow::fill_podcasts(const Glib::ustring& filter)
+void CatalogWindow::fill_shows(const std::vector<Station>& hits)
 {
   show_store_->clear();
-  const Glib::ustring needle = filter.lowercase();
-  int n = 0;
-  for (const auto& st : podcasts_) {
-    if (!needle.empty() && Glib::ustring(st.name).lowercase().find(needle) == Glib::ustring::npos)
-      continue;
+  for (const auto& st : hits) {
     auto row = *show_store_->append();
     row[show_cols_.name] = st.name;
     row[show_cols_.place] = st.place;
     row[show_cols_.url] = st.url;
-    ++n;
   }
-  show_status_.set_text(Glib::ustring::compose("%1 podcasts", n));
+}
+
+void CatalogWindow::show_starter()
+{
+  show_starter_ = true;
+  const Glib::ustring needle = show_query_.get_text().lowercase();
+  std::vector<Station> hits;
+  hits.reserve(podcasts_.size());
+  for (const auto& st : podcasts_) {
+    if (!needle.empty() && Glib::ustring(st.name).lowercase().find(needle) == Glib::ustring::npos)
+      continue;
+    hits.push_back(st);
+  }
+  fill_shows(hits);
+  if (needle.empty())
+    show_status_.set_text(
+        Glib::ustring::compose("%1 starter shows. Search iTunes for more.", hits.size()));
+  else
+    show_status_.set_text(Glib::ustring::compose("%1 starter shows matching “%2”.", hits.size(),
+                                                 show_query_.get_text()));
 }
 
 void CatalogWindow::on_live_search()
 {
-  if (searching_)
+  if (live_busy_)
     return;
   const Glib::ustring term = live_query_.get_text();
   if (term.empty()) {
     on_live_popular();
     return;
   }
-  searching_ = true;
+  live_busy_ = true;
   live_search_btn_.set_sensitive(false);
   live_status_.set_text("Searching radio-browser.info…");
-  cancel_->cancel();
-  cancel_ = Gio::Cancellable::create();
+  live_cancel_->cancel();
+  live_cancel_ = Gio::Cancellable::create();
   auto alive = alive_;
-  auto cancel = cancel_;
+  auto cancel = live_cancel_;
   std::thread([this, alive, cancel, term]() {
     std::string err;
     auto hits = search_radio_browser(term, err, cancel->gobj());
@@ -214,16 +245,16 @@ void CatalogWindow::on_live_search()
 
 void CatalogWindow::on_live_popular()
 {
-  if (searching_)
+  if (live_busy_)
     return;
-  searching_ = true;
+  live_busy_ = true;
   live_search_btn_.set_sensitive(false);
   live_popular_btn_.set_sensitive(false);
   live_status_.set_text("Loading popular stations…");
-  cancel_->cancel();
-  cancel_ = Gio::Cancellable::create();
+  live_cancel_->cancel();
+  live_cancel_ = Gio::Cancellable::create();
   auto alive = alive_;
-  auto cancel = cancel_;
+  auto cancel = live_cancel_;
   std::thread([this, alive, cancel]() {
     std::string err;
     auto hits = browse_radio_browser_popular(err, cancel->gobj());
@@ -237,7 +268,7 @@ void CatalogWindow::on_live_popular()
 
 void CatalogWindow::apply_live(std::vector<Station> hits, std::string error)
 {
-  searching_ = false;
+  live_busy_ = false;
   live_search_btn_.set_sensitive(true);
   live_popular_btn_.set_sensitive(true);
   fill_live(hits);
@@ -247,9 +278,57 @@ void CatalogWindow::apply_live(std::vector<Station> hits, std::string error)
     live_status_.set_text(Glib::ustring::compose("%1 live stations", hits.size()));
 }
 
-void CatalogWindow::on_podcast_filter()
+void CatalogWindow::on_show_query()
 {
-  fill_podcasts(show_filter_.get_text());
+  if (show_starter_)
+    show_starter();
+}
+
+void CatalogWindow::on_show_starter()
+{
+  show_starter_ = true;
+  if (!show_query_.get_text().empty())
+    show_query_.set_text("");
+  show_starter();
+}
+
+void CatalogWindow::on_show_search()
+{
+  if (show_busy_)
+    return;
+  const Glib::ustring term = show_query_.get_text();
+  if (term.empty()) {
+    show_starter();
+    return;
+  }
+  show_busy_ = true;
+  show_starter_ = false;
+  show_search_btn_.set_sensitive(false);
+  show_status_.set_text("Searching iTunes…");
+  show_cancel_->cancel();
+  show_cancel_ = Gio::Cancellable::create();
+  auto alive = alive_;
+  auto cancel = show_cancel_;
+  std::thread([this, alive, cancel, term]() {
+    std::string err;
+    auto hits = search_itunes_podcasts(term, err, cancel->gobj());
+    Glib::signal_idle().connect_once([this, alive, hits = std::move(hits), err = std::move(err)]() {
+      if (!*alive)
+        return;
+      apply_shows(hits, err);
+    });
+  }).detach();
+}
+
+void CatalogWindow::apply_shows(std::vector<Station> hits, std::string error)
+{
+  show_busy_ = false;
+  show_search_btn_.set_sensitive(true);
+  fill_shows(hits);
+  if (!error.empty())
+    show_status_.set_text(error);
+  else
+    show_status_.set_text(Glib::ustring::compose("%1 shows from iTunes", hits.size()));
 }
 
 bool CatalogWindow::selected_live(Station* out)

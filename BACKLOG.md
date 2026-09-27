@@ -10,7 +10,7 @@ Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite cata
 
 ## Low Priority
 
-- M5 Catalog — Station → Catalog… (browse live *and* podcasts). Not the home screen.
+- M5 Catalog — Station → Catalog… (browse live *and* podcasts). Not the home screen. Podcasts: starter `podcasts.ini` + iTunes Search (no key).
 - M6 last program, window size, in-process refresh
 - M7 package (`v0.1.0`)
 

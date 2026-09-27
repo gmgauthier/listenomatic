@@ -24,12 +24,16 @@ class CatalogWindow : public Gtk::Window {
  private:
   void load_podcasts();
   void fill_live(const std::vector<Station>& hits);
-  void fill_podcasts(const Glib::ustring& filter);
+  void fill_shows(const std::vector<Station>& hits);
+  void show_starter();
   void on_live_search();
   void on_live_popular();
-  void on_podcast_filter();
+  void on_show_search();
+  void on_show_starter();
+  void on_show_query();
   void on_add_clicked();
   void apply_live(std::vector<Station> hits, std::string error);
+  void apply_shows(std::vector<Station> hits, std::string error);
   bool selected_live(Station* out);
   bool selected_show(Station* out);
 
@@ -63,7 +67,9 @@ class CatalogWindow : public Gtk::Window {
   Gtk::ScrolledWindow live_scroll_;
 
   Gtk::Box show_page_{Gtk::ORIENTATION_VERTICAL, 6};
-  Gtk::Entry show_filter_;
+  Gtk::Entry show_query_;
+  Gtk::Button show_search_btn_{"Search"};
+  Gtk::Button show_starter_btn_{"Starter"};
   Gtk::Label show_status_;
   Gtk::TreeView show_view_;
   class ShowColumns : public Gtk::TreeModel::ColumnRecord {
@@ -88,8 +94,11 @@ class CatalogWindow : public Gtk::Window {
   Gtk::Button close_btn_{"Close"};
 
   std::shared_ptr<bool> alive_;
-  Glib::RefPtr<Gio::Cancellable> cancel_;
-  bool searching_ = false;
+  Glib::RefPtr<Gio::Cancellable> live_cancel_;
+  Glib::RefPtr<Gio::Cancellable> show_cancel_;
+  bool live_busy_ = false;
+  bool show_busy_ = false;
+  bool show_starter_ = true;
   sigc::signal<void, Station, bool> signal_add_;
 };
 

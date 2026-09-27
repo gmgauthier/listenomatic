@@ -36,7 +36,7 @@ Unreleased. `master` is Unlicense only. Do not tag until M7.
 | Look | Deck packing. Presets in a row. LCD under them. On Shows, the program list sits **under** the LCD |
 | Bands | **Live** and **Shows**, independent preset banks (six each) and Memory lists |
 | State | `~/.config/listenomatic/listenomatic.ini` |
-| Network | User-configured stream URLs and podcast RSS. No account, no daemon |
+| Network | User-configured stream URLs and podcast RSS. No account, no daemon. Catalog looks up live on radio-browser.info and podcasts on Apple's public iTunes Search API (no key) |
 | Never as v1 | Download-cache, keep-playing queue, video, WebKit show notes, Split packing, GoStations home screen |
 | Init | No systemd |
 | Brand | LCOS beige / navy LCD `#0B1D38`. No Bryan’s seal |
@@ -102,7 +102,7 @@ Add an RSS URL; program list fills; play enclosure; seek. Skip feeds with no aud
 Station → **Catalog…** opens a **separate window** (not the home screen, not the Add dialog). You **browse**:
 
 - **Live stations** — radio-browser.info (same database as Add’s search, different verb: wander vs look up one).
-- **Podcasts** — a list of popular shows (RSS URLs). Not Dispatch’s text feeds.
+- **Podcasts** — a shipped starter list (`data/podcasts.ini`, ~100 shows in Sci/Tech, News/Politics, Sports, Entertainment). **Search** looks up more on Apple's iTunes Search API (`feedUrl`, no account). Shows Apple does not list can still be added by RSS URL. Not Dispatch’s text feeds.
 
 Select adds to Memory on the matching band. Store on Preset stays a face verb. Do not make Catalog the first thing you see.
 
