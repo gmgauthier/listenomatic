@@ -11,17 +11,18 @@ Suite design: `lcos-projects/LISTEN-O-MATIC.md`
 
 ## Status (2026-09-27)
 
-Unreleased. `master` is Unlicense only. Do not tag until M6.
+Unreleased. `master` is Unlicense only. Do not tag until M7.
 
 | Slice | Branch / PR | State |
 |---|---|---|
 | **M0** Window | `feature/m0-window` — Gitea #1 | Done. Deck chrome. Not merged. |
 | **M1** Live play | `feature/m1-live-stream` — Gitea #2 (on M0) | Done. playbin, Add URL, Memory, volume, LCD name, ICY marquee. Not merged. |
-| **M2** Presets | — | Next. Punch 1–6, Store on Preset. Memory already lists and persists. |
-| **M3** Find live | — | radio-browser search in Add Station. |
-| **M4** One show | — | RSS, program list, enclosure, seek. Sample feed: Lunduke Journal `https://api.substack.com/feed/podcast/462466.rss`. |
-| **M5** Polish | — | Last program, window size, in-process refresh. ICY title already in M1. |
-| **M6** Package | — | `scripts/release.sh`, tag `v0.1.0`. |
+| **M2** Presets | `feature/m2-presets` | Done. Punch 1–6, Store on Preset, Remove. Not merged. |
+| **M3** | — | *Parked.* radio-browser in Add Station is superseded by Catalog. |
+| **M4** One show | — | RSS, program list, enclosure, seek. Sample: Lunduke Journal `https://api.substack.com/feed/podcast/462466.rss`. |
+| **M5** Catalog | — | Station → Catalog… separate window. Browse radio-browser.info (live) and a popular-podcasts list (shows). Select adds to Memory. Not the home screen. |
+| **M6** Polish | — | Last program, window size, in-process refresh. ICY title already in M1. |
+| **M7** Package | — | `scripts/release.sh`, tag `v0.1.0`. |
 
 ## 1. Locked decisions
 
@@ -58,7 +59,7 @@ status
 
 Shows: seek slider next to transport; program `TreeView` (title, date, time) under the LCD.
 
-Menus: File → Exit. Station → Add…, Remove, Store on Preset ▸ 1–6. Band → Live, Shows. Help → About.
+Menus: File → Exit. Station → Add…, Catalog…, Remove, Store on Preset ▸ 1–6. Band → Live, Shows. Help → About.
 
 ## 3. Architecture
 
@@ -68,7 +69,7 @@ Preset buttons are ordinary `Gtk::Button`s. Do not draw a photorealistic car ste
 
 ## 4. Milestones
 
-v1 is M0 through M6. Do not open download-cache, queues, or video until this set has been lived with.
+v1 is M0 through M7. Do not open download-cache, queues, or video until this set has been lived with.
 
 ### M0 — Window
 
@@ -80,21 +81,30 @@ Add a stream URL; Play / Stop; volume into playbin; LCD shows the name. First-ru
 
 ### M2 — Presets + memory
 
-Several live stations persist in the ini. Punch 1–6. Memory combo. Store on Preset. Last station / volume.
+Punch 1–6. Store on Preset. Labels show a short name. Independent live preset bank (Shows bank comes with M4). Memory combo and last station / volume already persist from M1.
 
-### M3 — Find live
+### M3 — (parked)
 
-Add Station search against radio-browser.info. Down stations pruned. User-agent set. Search is still a dialog, not the home screen.
+Add Station search against radio-browser.info. **Superseded by Catalog (M5).** Add Station stays paste-a-URL.
 
 ### M4 — One show
 
-Add an RSS URL; program list fills; play enclosure; seek. Skip feeds with no audio enclosure.
+Add an RSS URL; program list fills; play enclosure; seek. Skip feeds with no audio enclosure. Sample: Lunduke Journal podcast RSS.
 
-### M5 — Polish
+### M5 — Catalog
 
-ICY / stream title in the LCD. Last program on a show. Window size. Auto-refresh show feeds while open (interval, in-process).
+Station → **Catalog…** opens a **separate window** (not the home screen, not the Add dialog). Two directories:
 
-### M6 — Package
+- **Live:** radio-browser.info. Down stations pruned. User-agent set.
+- **Shows:** a list of popular podcasts (RSS URLs). Not Dispatch’s text feeds.
+
+Select adds the station to Memory on the matching band. Store on Preset remains a face verb. Do not make Catalog the first thing you see.
+
+### M6 — Polish
+
+Last program on a show. Window size. Auto-refresh show feeds while open (interval, in-process). ICY title already in M1.
+
+### M7 — Package
 
 `debian/` is already in the tree. `scripts/release.sh` → `.deb`, tarball, AppImage. Tag `v0.1.0`.
 
@@ -152,4 +162,4 @@ Then `./scripts/release.sh` produces `.deb`, tarball, and AppImage.
 | **MINOR** (`x.Y.0`) | New backward-compatible feature. |
 | **MAJOR** (`X.0.0`) | Breaking change: native file format, dropped config keys, removed UI users rely on. |
 
-Do not bump for unreleased M0. First tag is `v0.1.0` at M6.
+Do not bump for unreleased work. First tag is `v0.1.0` at M7.

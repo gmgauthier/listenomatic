@@ -1,19 +1,21 @@
 # Listen-O-Matic backlog
 
-Current: **M1 done, unreleased.** Last updated: 2026-09-27. Next: **M2** presets.
+Current: **M2 done, unreleased.** Last updated: 2026-09-27. Next: **M4** one show.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## High Priority
 
-- M2 — punch presets 1–6, Store on Preset. Memory list already persists.
+- M4 — one show (RSS, program list, enclosure, seek)
 
 ## Low Priority
 
-- M3 radio-browser search in Add Station
 - M4 one show (RSS, program list, enclosure, seek). Sample: Lunduke Journal podcast RSS
-- M5 last program, window size, in-process refresh (ICY title already in M1)
-- M6 package (`v0.1.0`)
+- M5 Catalog — Station → Catalog… (radio-browser + popular podcasts). Not the home screen.
+- M6 last program, window size, in-process refresh
+- M7 package (`v0.1.0`)
+
+Parked: M3 search-in-Add (Catalog replaces it).
 
 ## Out of Scope
 

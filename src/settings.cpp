@@ -7,6 +7,8 @@
 #include <glibmm/keyfile.h>
 #include <glibmm/miscutils.h>
 
+#include <algorithm>
+
 namespace listenomatic {
 namespace {
 
@@ -89,6 +91,30 @@ void Settings::load()
   }
   if (current_live < 0 || current_live >= static_cast<int>(live.size()))
     current_live = live.empty() ? -1 : 0;
+
+  bool any_preset_key = false;
+  for (int i = 0; i < 6; ++i) {
+    const Glib::ustring k = Glib::ustring::compose("preset%1", i);
+    live_presets[static_cast<std::size_t>(i)] = -1;
+    try {
+      if (!kf.has_group("live") || !kf.has_key("live", k))
+        continue;
+    } catch (const Glib::Error&) {
+      continue;
+    }
+    any_preset_key = true;
+    try {
+      const int idx = kf.get_integer("live", k);
+      if (idx >= 0 && idx < static_cast<int>(live.size()))
+        live_presets[static_cast<std::size_t>(i)] = idx;
+    } catch (const Glib::Error&) {
+    }
+  }
+  if (!any_preset_key) {
+    const int n = std::min(6, static_cast<int>(live.size()));
+    for (int i = 0; i < n; ++i)
+      live_presets[static_cast<std::size_t>(i)] = i;
+  }
 }
 
 void Settings::save() const
@@ -103,6 +129,10 @@ void Settings::save() const
                   live[static_cast<std::size_t>(i)].name);
     kf.set_string("live", Glib::ustring::compose("url%1", i),
                   live[static_cast<std::size_t>(i)].url);
+  }
+  for (int i = 0; i < 6; ++i) {
+    kf.set_integer("live", Glib::ustring::compose("preset%1", i),
+                   live_presets[static_cast<std::size_t>(i)]);
   }
   try {
     kf.save_to_file(config_path());

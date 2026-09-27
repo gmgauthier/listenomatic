@@ -115,6 +115,7 @@ MainWindow::MainWindow()
   live_.signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_band_live));
   shows_.signal_toggled().connect(sigc::mem_fun(*this, &MainWindow::on_band_shows));
   fill_memory();
+  refresh_presets();
   if (settings_.band == Band::Shows)
     shows_.set_active(true);
   else
@@ -211,6 +212,43 @@ void MainWindow::fill_memory()
   memory_changed_.unblock();
 }
 
+void MainWindow::refresh_presets()
+{
+  const bool shows = shows_.get_active();
+  for (int i = 0; i < 6; ++i) {
+    const int idx = settings_.live_presets[static_cast<std::size_t>(i)];
+    Glib::ustring label;
+    bool on = false;
+    if (idx >= 0 && idx < static_cast<int>(settings_.live.size())) {
+      label = Glib::ustring::compose("%1\n%2", i + 1,
+                                     settings_.live[static_cast<std::size_t>(idx)].short_name);
+      on = !shows && idx == settings_.current_live;
+    } else {
+      label = Glib::ustring::compose("%1\n—", i + 1);
+    }
+    presets_[static_cast<std::size_t>(i)].set_label(label);
+    auto ctx = presets_[static_cast<std::size_t>(i)].get_style_context();
+    if (on)
+      ctx->add_class("listenomatic-preset-on");
+    else
+      ctx->remove_class("listenomatic-preset-on");
+  }
+}
+
+void MainWindow::select_live(int index, bool play)
+{
+  if (index < 0 || index >= static_cast<int>(settings_.live.size()))
+    return;
+  settings_.current_live = index;
+  fill_memory();
+  refresh_presets();
+  settings_.save();
+  if (play)
+    play_current();
+  else
+    refresh_face();
+}
+
 const Station* MainWindow::current() const
 {
   if (settings_.current_live < 0 ||
@@ -271,6 +309,7 @@ void MainWindow::apply_band()
   } else {
     programs_frame_.hide();
   }
+  refresh_presets();
   refresh_face();
   settings_.save();
 }
@@ -380,18 +419,49 @@ void MainWindow::on_station_add()
   settings_.live.push_back(std::move(st));
   settings_.current_live = static_cast<int>(settings_.live.size()) - 1;
   fill_memory();
+  refresh_presets();
   settings_.save();
   refresh_face();
 }
 
 void MainWindow::on_station_remove()
 {
-  set_status("Remove is M2");
+  const int idx = settings_.current_live;
+  if (idx < 0 || idx >= static_cast<int>(settings_.live.size())) {
+    set_status("Nothing to remove");
+    return;
+  }
+  player_.stop();
+  settings_.live.erase(settings_.live.begin() + idx);
+  for (int i = 0; i < 6; ++i) {
+    int& p = settings_.live_presets[static_cast<std::size_t>(i)];
+    if (p == idx)
+      p = -1;
+    else if (p > idx)
+      --p;
+  }
+  if (settings_.current_live >= static_cast<int>(settings_.live.size()))
+    settings_.current_live = static_cast<int>(settings_.live.size()) - 1;
+  fill_memory();
+  refresh_presets();
+  settings_.save();
+  refresh_face();
 }
 
 void MainWindow::on_store_preset(int slot)
 {
-  set_status(Glib::ustring::compose("Store on Preset %1 is M2", slot + 1));
+  if (shows_.get_active()) {
+    set_status("Shows presets are M4");
+    return;
+  }
+  if (settings_.current_live < 0) {
+    set_status("Tune a station first");
+    return;
+  }
+  settings_.live_presets[static_cast<std::size_t>(slot)] = settings_.current_live;
+  refresh_presets();
+  settings_.save();
+  set_status(Glib::ustring::compose("Stored on preset %1", slot + 1));
 }
 
 void MainWindow::on_band_live()
@@ -434,7 +504,16 @@ void MainWindow::on_play()
 
 void MainWindow::on_preset(int slot)
 {
-  set_status(Glib::ustring::compose("Preset %1 is M2", slot + 1));
+  if (shows_.get_active()) {
+    set_status("Shows presets are M4");
+    return;
+  }
+  const int idx = settings_.live_presets[static_cast<std::size_t>(slot)];
+  if (idx < 0) {
+    set_status("Empty preset — Station → Store on Preset");
+    return;
+  }
+  select_live(idx, true);
 }
 
 void MainWindow::on_memory()
@@ -442,9 +521,7 @@ void MainWindow::on_memory()
   const Glib::ustring id = memory_.get_active_id();
   if (id.empty() || id == "-1")
     return;
-  settings_.current_live = std::atoi(id.c_str());
-  settings_.save();
-  play_current();
+  select_live(std::atoi(id.c_str()), true);
 }
 
 void MainWindow::on_player_state(Player::State)

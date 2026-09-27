@@ -21,8 +21,10 @@ class MainWindow : public Gtk::Window {
   void build_menu();
   void apply_band();
   void fill_memory();
+  void refresh_presets();
   void refresh_face();
   void play_current();
+  void select_live(int index, bool play);
   const Station* current() const;
   void set_status(const Glib::ustring& text);
   void on_player_state(Player::State state);

@@ -35,6 +35,10 @@ window.listenomatic-window {
   font-size: 12px;
 }
 
+button.listenomatic-preset-on {
+  font-weight: bold;
+}
+
 statusbar {
   background-color: #D4D0C8;
 }
