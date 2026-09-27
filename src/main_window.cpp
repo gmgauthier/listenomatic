@@ -7,6 +7,7 @@
 #include "paths.hpp"
 #include "rss.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -18,16 +19,8 @@ MainWindow::MainWindow()
 {
   set_title("Listen-O-Matic");
   set_resizable(false);
-  set_size_request(720, 540);
-  set_default_size(720, 540);
-  {
-    Gdk::Geometry geom;
-    geom.min_width = 720;
-    geom.max_width = 720;
-    geom.min_height = 540;
-    geom.max_height = 540;
-    set_geometry_hints(*this, geom, Gdk::HINT_MIN_SIZE | Gdk::HINT_MAX_SIZE);
-  }
+  set_size_request(-1, 540);
+  set_default_size(736, 540);
   set_border_width(0);
   get_style_context()->add_class("listenomatic-window");
 
@@ -171,8 +164,24 @@ MainWindow::MainWindow()
     live_.set_active(true);
   show_all();
   apply_band();
-  resize(720, 540);
   settings_.save();
+}
+
+void MainWindow::fit_window()
+{
+  Gtk::Requisition min, nat;
+  get_preferred_size(min, nat);
+  const int w = std::max(std::max(min.width, nat.width), 736);
+  const int h = std::max(std::max(min.height, nat.height), 540);
+  resize(w, h);
+  if (auto gdk = get_window())
+    gdk->resize(w, h);
+}
+
+void MainWindow::on_map()
+{
+  Gtk::Window::on_map();
+  Glib::signal_idle().connect_once([this]() { fit_window(); });
 }
 
 MainWindow::~MainWindow()
@@ -433,11 +442,7 @@ void MainWindow::apply_band()
     fill_live_tracks();
     refresh_face();
   }
-  Glib::signal_idle().connect_once([this]() {
-    resize(720, 540);
-    if (auto gdk = get_window())
-      gdk->resize(720, 540);
-  });
+  Glib::signal_idle().connect_once([this]() { fit_window(); });
   settings_.save();
 }
 
@@ -578,7 +583,7 @@ void MainWindow::apply_feed(PodcastFeed feed, std::string error, bool play_lates
     play_program(current_program_);
   else
     set_status(Glib::ustring::compose("%1 programs", episodes_.size()));
-  Glib::signal_idle().connect_once([this]() { resize(720, 540); });
+  Glib::signal_idle().connect_once([this]() { fit_window(); });
 }
 
 void MainWindow::set_status(const Glib::ustring& text)

@@ -21,8 +21,12 @@ class MainWindow : public Gtk::Window {
   MainWindow();
   ~MainWindow() override;
 
+ protected:
+  void on_map() override;
+
  private:
   void load_css();
+  void fit_window();
   void build_menu();
   void apply_band();
   bool on_shows() const;
