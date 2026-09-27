@@ -108,7 +108,7 @@ Select adds to Memory on the matching band. Store on Preset stays a face verb. D
 
 ### M6 — Polish
 
-Last program on a show. Window size. Auto-refresh show feeds while open (interval, in-process). ICY title already in M1.
+Window size. Auto-refresh show feeds while open (interval, in-process). ICY title already in M1. Resume-from-last-position and ±15s skip landed with M4.
 
 ### M7 — Package
 

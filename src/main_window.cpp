@@ -85,9 +85,15 @@ MainWindow::MainWindow()
   client_.pack_start(lcd_box_, Gtk::PACK_SHRINK);
 
   btn_stop_.set_size_request(36, 28);
+  btn_back_.set_size_request(40, 28);
   btn_play_.set_size_request(36, 28);
+  btn_fwd_.set_size_request(40, 28);
+  btn_back_.set_tooltip_text("Skip back 15 seconds");
+  btn_fwd_.set_tooltip_text("Skip forward 15 seconds");
   btn_stop_.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_stop));
+  btn_back_.signal_clicked().connect([this]() { on_skip(-15); });
   btn_play_.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::on_play));
+  btn_fwd_.signal_clicked().connect([this]() { on_skip(15); });
   seek_.set_range(0, 1000);
   seek_.set_draw_value(false);
   seek_.set_hexpand(true);
@@ -95,8 +101,12 @@ MainWindow::MainWindow()
   seek_changed_ = seek_.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_seek));
   seek_.set_no_show_all();
   seek_lab_.set_no_show_all();
+  btn_back_.set_no_show_all();
+  btn_fwd_.set_no_show_all();
   transport_.pack_start(btn_stop_, Gtk::PACK_SHRINK);
+  transport_.pack_start(btn_back_, Gtk::PACK_SHRINK);
   transport_.pack_start(btn_play_, Gtk::PACK_SHRINK);
+  transport_.pack_start(btn_fwd_, Gtk::PACK_SHRINK);
   transport_.pack_start(seek_, Gtk::PACK_EXPAND_WIDGET);
   transport_.pack_start(seek_lab_, Gtk::PACK_SHRINK);
   client_.pack_start(transport_, Gtk::PACK_SHRINK);
@@ -151,6 +161,7 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
+  save_progress();
   if (feed_alive_)
     *feed_alive_ = false;
 }
@@ -357,9 +368,12 @@ void MainWindow::apply_band()
 {
   const bool shows = on_shows();
   settings_.band = shows ? Band::Shows : Band::Live;
+  save_progress();
   player_.stop();
   seek_.set_visible(shows);
   seek_lab_.set_visible(shows);
+  btn_back_.set_visible(shows);
+  btn_fwd_.set_visible(shows);
   seek_.set_sensitive(false);
   if (shows) {
     programs_frame_.show();
@@ -407,14 +421,40 @@ void MainWindow::play_program(int index)
 {
   if (index < 0 || index >= static_cast<int>(episodes_.size()))
     return;
+  save_progress();
   current_program_ = index;
   const Program& p = episodes_[static_cast<std::size_t>(index)];
+  pending_resume_ns_ = 0;
+  const std::int64_t saved = settings_.resume_for(p.enclosure);
+  const std::int64_t dur = p.duration_ns;
+  if (saved > 3 * 1000000000LL && (dur <= 0 || saved < dur - 5 * 1000000000LL))
+    pending_resume_ns_ = saved;
   if (!player_.open(p.enclosure))
     return;
   player_.set_volume(settings_.volume);
   player_.play();
   lcd_now_.set_text(p.title);
   refresh_face();
+}
+
+void MainWindow::save_progress()
+{
+  if (!on_shows() || current_program_ < 0 || current_program_ >= static_cast<int>(episodes_.size()))
+    return;
+  if (player_.state() == Player::State::Stopped)
+    return;
+  player_.refresh_position();
+  const Program& p = episodes_[static_cast<std::size_t>(current_program_)];
+  const gint64 pos = player_.position();
+  const gint64 dur = player_.duration() > 0 ? player_.duration() : p.duration_ns;
+  if (pos < 3 * GST_SECOND) {
+    settings_.clear_resume(p.enclosure);
+  } else if (dur > 0 && pos >= dur - 5 * GST_SECOND) {
+    settings_.clear_resume(p.enclosure);
+  } else {
+    settings_.set_resume(p.enclosure, pos);
+  }
+  settings_.save();
 }
 
 void MainWindow::fill_programs()
@@ -620,13 +660,30 @@ void MainWindow::on_volume()
 
 void MainWindow::on_stop()
 {
+  save_progress();
   player_.stop();
   refresh_face();
+}
+
+void MainWindow::on_skip(int seconds)
+{
+  if (!on_shows())
+    return;
+  player_.refresh_position();
+  gint64 ns = player_.position() + static_cast<gint64>(seconds) * GST_SECOND;
+  if (ns < 0)
+    ns = 0;
+  const gint64 dur = player_.duration();
+  if (dur > 0 && ns > dur)
+    ns = dur;
+  player_.seek(ns);
+  player_.refresh_position();
 }
 
 void MainWindow::on_play()
 {
   if (player_.state() == Player::State::Playing) {
+    save_progress();
     player_.pause();
     return;
   }
@@ -655,9 +712,13 @@ void MainWindow::on_memory()
   select_station(std::atoi(id.c_str()), true);
 }
 
-void MainWindow::on_player_state(Player::State)
+void MainWindow::on_player_state(Player::State state)
 {
   btn_play_.set_label(player_.state() == Player::State::Playing ? "❚❚" : "►");
+  if (state == Player::State::Playing && pending_resume_ns_ > 0) {
+    player_.seek(pending_resume_ns_);
+    pending_resume_ns_ = 0;
+  }
   refresh_face();
 }
 

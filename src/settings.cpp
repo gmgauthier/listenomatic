@@ -153,6 +153,25 @@ void Settings::load()
   }
   current_show = clamp_current(current_show, shows);
   load_presets(kf, "shows", shows, &show_presets);
+
+  resumes.clear();
+  try {
+    if (kf.has_group("resume") && kf.has_key("resume", "count")) {
+      const int n = kf.get_integer("resume", "count");
+      for (int i = 0; i < n; ++i) {
+        Resume r;
+        try {
+          r.enclosure = kf.get_string("resume", Glib::ustring::compose("url%1", i));
+          r.position_ns = kf.get_int64("resume", Glib::ustring::compose("pos%1", i));
+        } catch (const Glib::Error&) {
+          continue;
+        }
+        if (!r.enclosure.empty() && r.position_ns > 0)
+          resumes.push_back(std::move(r));
+      }
+    }
+  } catch (const Glib::Error&) {
+  }
 }
 
 void Settings::save() const
@@ -162,10 +181,44 @@ void Settings::save() const
   kf.set_double("audio", "volume", volume);
   save_station_group(kf, "live", live, current_live, live_presets);
   save_station_group(kf, "shows", shows, current_show, show_presets);
+  kf.set_integer("resume", "count", static_cast<int>(resumes.size()));
+  for (int i = 0; i < static_cast<int>(resumes.size()); ++i) {
+    kf.set_string("resume", Glib::ustring::compose("url%1", i),
+                  resumes[static_cast<std::size_t>(i)].enclosure);
+    kf.set_int64("resume", Glib::ustring::compose("pos%1", i),
+                 resumes[static_cast<std::size_t>(i)].position_ns);
+  }
   try {
     kf.save_to_file(config_path());
   } catch (const Glib::Error&) {
   }
+}
+
+std::int64_t Settings::resume_for(const std::string& enclosure) const
+{
+  for (const auto& r : resumes) {
+    if (r.enclosure == enclosure)
+      return r.position_ns;
+  }
+  return 0;
+}
+
+void Settings::set_resume(const std::string& enclosure, std::int64_t position_ns)
+{
+  if (enclosure.empty() || position_ns <= 0)
+    return;
+  clear_resume(enclosure);
+  resumes.insert(resumes.begin(), Resume{enclosure, position_ns});
+  constexpr int kMax = 80;
+  if (static_cast<int>(resumes.size()) > kMax)
+    resumes.resize(static_cast<std::size_t>(kMax));
+}
+
+void Settings::clear_resume(const std::string& enclosure)
+{
+  resumes.erase(std::remove_if(resumes.begin(), resumes.end(),
+                               [&](const Resume& r) { return r.enclosure == enclosure; }),
+                resumes.end());
 }
 
 }  // namespace listenomatic

@@ -115,6 +115,11 @@ void Player::stop_position_timer()
   pos_timer_id_ = 0;
 }
 
+void Player::refresh_position()
+{
+  query_position();
+}
+
 void Player::query_position()
 {
   if (!playbin_)

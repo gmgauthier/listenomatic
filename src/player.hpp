@@ -27,6 +27,7 @@ class Player {
   void stop();
   void seek(gint64 ns);
   void set_volume(double volume);
+  void refresh_position();
 
   State state() const
   {

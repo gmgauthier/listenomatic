@@ -34,6 +34,8 @@ class MainWindow : public Gtk::Window {
   void refresh_face();
   void play_current();
   void play_program(int index);
+  void save_progress();
+  void on_skip(int seconds);
   void select_station(int index, bool play);
   void load_show_feed(bool play_latest);
   void apply_feed(PodcastFeed feed, std::string error, bool play_latest);
@@ -93,7 +95,9 @@ class MainWindow : public Gtk::Window {
 
   Gtk::Box transport_{Gtk::ORIENTATION_HORIZONTAL, 6};
   Gtk::Button btn_stop_{"■"};
+  Gtk::Button btn_back_{"−15"};
   Gtk::Button btn_play_{"►"};
+  Gtk::Button btn_fwd_{"+15"};
   Gtk::Scale seek_{Gtk::ORIENTATION_HORIZONTAL};
   Gtk::Label seek_lab_{"0:00 / 0:00"};
 
@@ -121,6 +125,7 @@ class MainWindow : public Gtk::Window {
 
   std::vector<Program> episodes_;
   int current_program_ = -1;
+  gint64 pending_resume_ns_ = 0;
   bool seek_from_player_ = false;
   std::shared_ptr<bool> feed_alive_;
 };
