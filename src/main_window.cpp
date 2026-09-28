@@ -127,6 +127,10 @@ MainWindow::MainWindow()
   seek_.set_range(0, 1000);
   seek_.set_draw_value(false);
   seek_.set_hexpand(true);
+  /* Clearlooks centers a 21px grip on the trough end. At 0 and at the
+     end of a show that grip hangs past the scale, into +15 and the time. */
+  seek_.set_margin_start(8);
+  seek_.set_margin_end(8);
   seek_.set_sensitive(false);
   seek_changed_ = seek_.signal_value_changed().connect(sigc::mem_fun(*this, &MainWindow::on_seek));
   transport_.pack_start(btn_stop_, Gtk::PACK_SHRINK);
