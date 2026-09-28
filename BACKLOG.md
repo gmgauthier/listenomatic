@@ -1,12 +1,12 @@
 # Listen-O-Matic backlog
 
-Current: **M7 packaging in tree, untagged.** Last updated: 2026-09-27. Tag **`v1.0.0`** after merge. Then Sideboard.
+Current release: **v1.0.1**. Last updated: 2026-09-28.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## High Priority
 
-- Tag `v1.0.0` after the stack merges, publish the `.deb`, then add Listen-O-Matic to Sideboard.
+None.
 
 ## Low Priority
 
@@ -24,4 +24,6 @@ None.
 
 ## Shipped
 
-None yet.
+**v1.0.1** — Clearlooks seek grip stays off +15 and the time.
+
+**v1.0.0** — M0–M7. Deck, live streams, presets, Catalog, shows, and the package.

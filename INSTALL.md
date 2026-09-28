@@ -9,7 +9,7 @@ Four ways to get a binary, in the order LCOS cares about:
 | **AppImage** | Fallback for distros that do not install `.deb` files. gtkmm only. Published on the GitHub/Gitea release. |
 | **Git build** | Developers. See below. |
 
-Version comes from `meson.build` (currently `1.0.0`).
+Version comes from `meson.build` (currently `1.0.1`).
 
 ## Runtime needs
 
@@ -28,14 +28,14 @@ sudo apt install libgtkmm-3.0-1t64 gstreamer1.0-plugins-base gstreamer1.0-plugin
 From a release `.deb`:
 
 ```
-sudo apt install ./dist/listenomatic_1.0.0-1_amd64.deb
+sudo apt install ./dist/listenomatic_1.0.1-1_amd64.deb
 ```
 
 Or, from this tree:
 
 ```
 ./scripts/release.sh deb
-sudo apt install ./dist/listenomatic_1.0.0-1_amd64.deb
+sudo apt install ./dist/listenomatic_1.0.1-1_amd64.deb
 ```
 
 That installs:
@@ -57,8 +57,8 @@ Uninstall: `sudo apt remove listenomatic`.
 `meson dist` produces `build/meson-dist/listenomatic-VERSION.tar.xz`.
 
 ```
-tar -xf listenomatic-1.0.0.tar.xz
-cd listenomatic-1.0.0
+tar -xf listenomatic-1.0.1.tar.xz
+cd listenomatic-1.0.1
 sudo apt install build-essential meson ninja-build pkg-config g++ \
   libgtkmm-3.0-dev libgstreamer1.0-dev libsoup-3.0-dev libjson-glib-dev libxml2-dev \
   gstreamer1.0-plugins-base gstreamer1.0-plugins-good

@@ -1,3 +1,9 @@
+listenomatic (1.0.1-1) unstable; urgency=medium
+
+  * Keep the Clearlooks seek grip off +15 and the time.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Mon, 28 Sep 2026 20:58:18 +0100
+
 listenomatic (1.0.0-1) unstable; urgency=medium
 
   * Initial release. Kitchen radio for LCOS: live streams, podcast

@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**v1.0.0 packaging is in tree, untagged.** Live, Shows, Catalog, last program, saved window size, 15-minute feed refresh. The `.deb` is the install. Tag `v1.0.0` after merge. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**v1.0.1.** Live, Shows, Catalog, last program, saved window size, 15-minute feed refresh. The seek grip stays off +15 under Clearlooks. The `.deb` is the install. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|
