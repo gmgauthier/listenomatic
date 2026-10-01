@@ -1,0 +1,74 @@
+/* SPDX-License-Identifier: Unlicense */
+
+#include "rss.hpp"
+#include "check.hpp"
+
+#include <string>
+
+int main()
+{
+  listenomatic::PodcastFeed feed;
+  std::string error;
+
+  CHECK(!listenomatic::parse_podcast("", feed, error));
+  CHECK(error == "Empty feed");
+
+  CHECK(!listenomatic::parse_podcast("<rss></rss>", feed, error));
+  CHECK(!error.empty());
+
+  const char* xml =
+      "<?xml version=\"1.0\"?>"
+      "<rss version=\"2.0\"><channel>"
+      "<title> Kitchen </title>"
+      "<item><title>No audio</title><link>http://example.test/notes</link></item>"
+      "<item>"
+      "<title>Episode</title>"
+      "<pubDate>Fri, 25 Sep 2026 02:01:51 GMT</pubDate>"
+      "<enclosure url=\"http://example.test/ep.mp3\" type=\"audio/mpeg\" length=\"10\"/>"
+      "<duration>1:02:03</duration>"
+      "</item>"
+      "<item>"
+      "<title>Short</title>"
+      "<pubDate>2026-09-26T00:00:00Z</pubDate>"
+      "<enclosure url=\"http://example.test/short.ogg\" type=\"audio/ogg\"/>"
+      "<duration>90</duration>"
+      "</item>"
+      "</channel></rss>";
+  CHECK(listenomatic::parse_podcast(xml, feed, error));
+  CHECK(error.empty());
+  CHECK(feed.title == "Kitchen");
+  CHECK(feed.programs.size() == 2);
+  CHECK(feed.programs[0].title == "Episode");
+  CHECK(feed.programs[0].date == "2026-09-25");
+  CHECK(feed.programs[0].enclosure == "http://example.test/ep.mp3");
+  CHECK(feed.programs[0].duration_ns == 3723LL * 1000000000LL);
+  CHECK(feed.programs[0].length == "1:02:03");
+  CHECK(feed.programs[1].date == "2026-09-26");
+  CHECK(feed.programs[1].length == "1:30");
+  CHECK(feed.programs[1].duration_ns == 90LL * 1000000000LL);
+
+  std::string many = "<?xml version=\"1.0\"?><rss><channel><title>Many</title>";
+  for (int i = 0; i < 90; ++i) {
+    many += "<item><title>E" + std::to_string(i) + "</title>";
+    many += "<enclosure url=\"http://example.test/" + std::to_string(i) + ".mp3\" type=\"audio/mpeg\"/>";
+    many += "</item>";
+  }
+  many += "</channel></rss>";
+  CHECK(listenomatic::parse_podcast(many, feed, error));
+  CHECK(feed.programs.size() == 80);
+  CHECK(feed.programs.front().title == "E0");
+  CHECK(feed.programs.back().title == "E79");
+
+  const char* atom =
+      "<feed><title>Atom</title>"
+      "<entry><title>A</title>"
+      "<published>Mon, 01 Jan 2024 00:00:00 GMT</published>"
+      "<link rel=\"enclosure\" href=\"http://example.test/a.m4a\" type=\"audio/mp4\"/>"
+      "</entry></feed>";
+  CHECK(listenomatic::parse_podcast(atom, feed, error));
+  CHECK(feed.programs.size() == 1);
+  CHECK(feed.programs[0].enclosure == "http://example.test/a.m4a");
+  CHECK(feed.programs[0].date == "2024-01-01");
+
+  return suite_test::done("rss");
+}

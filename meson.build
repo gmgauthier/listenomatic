@@ -83,3 +83,12 @@ install_data(
   rename: 'listenomatic.svg',
   install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable' / 'apps',
 )
+
+listenomatic_tests = executable(
+  'listenomatic-tests',
+  'tests/test_rss.cpp',
+  'src/rss.cpp',
+  include_directories: inc,
+  dependencies: [libxml],
+)
+test('rss', listenomatic_tests)
