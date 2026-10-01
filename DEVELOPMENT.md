@@ -9,9 +9,9 @@ License: The Unlicense (`UNLICENSE`)
 Repos: https://gitea.scriptorium/gmgauthier/listenomatic (origin), https://github.com/gmgauthier/listenomatic
 Suite design: `lcos-projects/LISTEN-O-MATIC.md`
 
-## Status (2026-09-28)
+## Status (2026-10-01)
 
-**v1.0.1.** Shipped. Patch: the Clearlooks seek grip stays off +15 and the time.
+**v1.0.2.** Shipped. Headless test suite and BUG-BACKLOG.md. The v1.0.1 Clearlooks seek grip is unchanged.
 
 | Slice | Branch / PR | State |
 |---|---|---|
@@ -22,7 +22,7 @@ Suite design: `lcos-projects/LISTEN-O-MATIC.md`
 | **M4** One show | `feature/m4-one-show` | Done. RSS, programs, enclosure, seek. Not merged. |
 | **M5** Catalog | `feature/m5-catalog` | Done. Station → Catalog…. Not merged. |
 | **M6** Polish | `feature/m6-polish` | Done. Last program, window size, 15-minute feed refresh. Not merged. |
-| **M7** Package | `feature/m7-package` | Shipped. v1.0.0, then v1.0.1. |
+| **M7** Package | `feature/m7-package` | Shipped. v1.0.0, then v1.0.1, then v1.0.2. |
 
 ## 1. Locked decisions
 
@@ -118,9 +118,9 @@ ICY title already in M1. Resume-from-last-position and ±15s skip landed with M4
 
 ### M7 — Package
 
-**Shipped.** Version `1.0.1`.
+**Shipped.** Version `1.0.2`.
 
-`scripts/release.sh` writes `dist/listenomatic-1.0.1.tar.xz`, `dist/listenomatic_1.0.1-1_amd64.deb`, and an AppImage when `linuxdeploy` is on `PATH`. The `.deb` is the LCOS install. Sideboard lists the package and installs the `.deb` from the GitHub release.
+`scripts/release.sh` writes `dist/listenomatic-1.0.2.tar.xz`, `dist/listenomatic_1.0.2-1_amd64.deb`, and an AppImage when `linuxdeploy` is on `PATH`. The `.deb` is the LCOS install. Sideboard lists the package and installs the `.deb` from the GitHub release.
 
 ## 5. Parked
 

@@ -1,6 +1,6 @@
 # Listen-O-Matic backlog
 
-Current release: **v1.0.1**. Last updated: 2026-09-28.
+Current release: **v1.0.2**. Last updated: 2026-10-01.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -23,6 +23,8 @@ None.
 - Custom title bar; Bryan’s seal; Electron; a user-bus daemon
 
 ## Shipped
+
+**v1.0.2** — Headless meson test suite, and known defects recorded in BUG-BACKLOG.md.
 
 **v1.0.1** — Clearlooks seek grip stays off +15 and the time.
 
