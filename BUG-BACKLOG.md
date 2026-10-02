@@ -22,14 +22,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: Change shows and activate the "Loading programs…" row before the fetch returns.
 - Outcome: `fetch_show` replaces the tree with that row and does not clear `episodes_`. `play_program` indexes `episodes_` by the row. Episode 0 of the previous show starts, and `set_last_program` records that other show's enclosure on the new show.
 
-### An empty or unreadable station list is replaced with the samples and saved
-
-- Severity: data-loss
-- Confidence: high
-- Where: `src/settings.cpp:107`, `src/settings.cpp:142`, `src/main_window.cpp:202`
-- Trigger: Remove every Live or Shows station and restart. Or start with a `listenomatic.ini` that `Glib::KeyFile` rejects.
-- Outcome: `load()` swallows a failed `load_from_file`. An empty live or shows group is filled from `samples.ini`. The window constructor always calls `settings_.save()`, so the sample list is written back. Resume positions and last-program entries from a file that failed to parse are dropped. An intentional empty Memory comes back full.
-
 ### Preset short names are cut mid-codepoint
 
 - Severity: incorrect
@@ -104,3 +96,12 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: While a show is playing, switch to Live. Or switch Live → Shows after a show was loaded earlier in the same process.
 - Outcome: `apply_band` updates `settings_.band`, then calls `save_progress()`, then stops the player. `save_progress` returns immediately unless `on_shows()` is already true. Shows → Live therefore writes nothing. Live → Shows runs `save_progress` while playbin is still on the live stream and `episodes_` / `current_program_` still describe the old episode, so the live position is stored as that episode's resume. A near-zero live position clears the resume.
 - Fixed: v1.0.3
+
+### An empty or unreadable station list is replaced with the samples and saved
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/settings.cpp:107`, `src/settings.cpp:142`, `src/main_window.cpp:202`
+- Trigger: Remove every Live or Shows station and restart. Or start with a `listenomatic.ini` that `Glib::KeyFile` rejects.
+- Outcome: `load()` swallows a failed `load_from_file`. An empty live or shows group is filled from `samples.ini`. The window constructor always calls `settings_.save()`, so the sample list is written back. Resume positions and last-program entries from a file that failed to parse are dropped. An intentional empty Memory comes back full.
+- Fixed: v1.0.4

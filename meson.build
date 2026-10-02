@@ -1,7 +1,7 @@
 project(
   'listenomatic',
   'cpp',
-  version: '1.0.3',
+  version: '1.0.4',
   license: 'Unlicense',
   meson_version: '>=0.56',
   default_options: [
@@ -105,3 +105,14 @@ resume_tests = executable(
   dependencies: [gtkmm],
 )
 test('resume', resume_tests)
+
+settings_tests = executable(
+  'listenomatic-settings-tests',
+  'tests/test_settings.cpp',
+  'src/settings.cpp',
+  'src/station.cpp',
+  'src/paths.cpp',
+  include_directories: inc,
+  dependencies: [gtkmm],
+)
+test('settings', settings_tests)

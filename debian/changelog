@@ -1,3 +1,9 @@
+listenomatic (1.0.4-1) unstable; urgency=medium
+
+  * An empty Memory stays empty; an unreadable listenomatic.ini is kept aside as listenomatic.ini.bad instead of being overwritten.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:55:21 +0100
+
 listenomatic (1.0.3-1) unstable; urgency=medium
 
   * Leaving Shows saves the playing episode's resume, and coming back no longer writes the live position onto an episode.

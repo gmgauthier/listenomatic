@@ -46,8 +46,14 @@ struct Settings {
   std::string last_program_for(const std::string& feed) const;
   void set_last_program(const std::string& feed, const std::string& enclosure);
 
+  /* A config file that cannot be parsed is renamed to listenomatic.ini.bad (or
+   * .bad.<time>) so the next save cannot overwrite it. If it cannot be moved,
+   * save() leaves it alone for the rest of the session. */
   void load();
   void save() const;
+
+ private:
+  bool keep_unreadable_file_ = false;
 };
 
 }  // namespace listenomatic
