@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 
 ## Open
 
-### Leaving Shows does not save the resume, and coming back can write the live position onto the episode
-
-- Severity: data-loss
-- Confidence: high
-- Where: `src/main_window.cpp:511`, `src/main_window.cpp:589`
-- Trigger: While a show is playing, switch to Live. Or switch Live → Shows after a show was loaded earlier in the same process.
-- Outcome: `apply_band` updates `settings_.band`, then calls `save_progress()`, then stops the player. `save_progress` returns immediately unless `on_shows()` is already true. Shows → Live therefore writes nothing. Live → Shows runs `save_progress` while playbin is still on the live stream and `episodes_` / `current_program_` still describe the old episode, so the live position is stored as that episode's resume. A near-zero live position clears the resume.
-
 ### Changing show leaves the old episode playing and saves its position onto the new one
 
 - Severity: data-loss
@@ -104,4 +96,11 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 
 ## Closed
 
-None.
+### Leaving Shows does not save the resume, and coming back can write the live position onto the episode
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/main_window.cpp:511`, `src/main_window.cpp:589`
+- Trigger: While a show is playing, switch to Live. Or switch Live → Shows after a show was loaded earlier in the same process.
+- Outcome: `apply_band` updates `settings_.band`, then calls `save_progress()`, then stops the player. `save_progress` returns immediately unless `on_shows()` is already true. Shows → Live therefore writes nothing. Live → Shows runs `save_progress` while playbin is still on the live stream and `episodes_` / `current_program_` still describe the old episode, so the live position is stored as that episode's resume. A near-zero live position clears the resume.
+- Fixed: v1.0.3

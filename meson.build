@@ -1,7 +1,7 @@
 project(
   'listenomatic',
   'cpp',
-  version: '1.0.2',
+  version: '1.0.3',
   license: 'Unlicense',
   meson_version: '>=0.56',
   default_options: [
@@ -43,6 +43,7 @@ executable(
   'src/radiobrowser.cpp',
   'src/itunes.cpp',
   'src/rss.cpp',
+  'src/resume.cpp',
   'src/add_dialog.cpp',
   'src/catalog_window.cpp',
   'src/main_window.cpp',
@@ -92,3 +93,15 @@ listenomatic_tests = executable(
   dependencies: [libxml],
 )
 test('rss', listenomatic_tests)
+
+resume_tests = executable(
+  'listenomatic-resume-tests',
+  'tests/test_resume.cpp',
+  'src/resume.cpp',
+  'src/settings.cpp',
+  'src/station.cpp',
+  'src/paths.cpp',
+  include_directories: inc,
+  dependencies: [gtkmm],
+)
+test('resume', resume_tests)
