@@ -107,6 +107,18 @@ resume_tests = executable(
 )
 test('resume', resume_tests)
 
+show_switch_tests = executable(
+  'listenomatic-show-switch-tests',
+  'tests/test_show_switch.cpp',
+  'src/resume.cpp',
+  'src/settings.cpp',
+  'src/station.cpp',
+  'src/paths.cpp',
+  include_directories: inc,
+  dependencies: [gtkmm],
+)
+test('show-switch', show_switch_tests)
+
 settings_tests = executable(
   'listenomatic-settings-tests',
   'tests/test_settings.cpp',

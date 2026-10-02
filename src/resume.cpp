@@ -36,4 +36,14 @@ bool ResumeTracker::save(Settings& settings, std::int64_t pos_ns,
   return true;
 }
 
+bool handoff_playing_show(ResumeTracker& playing, Settings& settings, std::int64_t pos_ns,
+                          std::int64_t player_duration_ns, bool player_stopped)
+{
+  bool wrote = false;
+  if (playing.active() && !player_stopped)
+    wrote = playing.save(settings, pos_ns, player_duration_ns);
+  playing.forget();
+  return wrote;
+}
+
 }  // namespace listenomatic
