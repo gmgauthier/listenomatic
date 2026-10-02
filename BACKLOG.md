@@ -10,7 +10,9 @@ None.
 
 ## Low Priority
 
-None.
+- **Tracks context menu on Live.** Right-clicking a row in the Live tab's Tracks list opens a context menu with two items:
+  - **Copy track name**: puts the track string, exactly as shown in the row, on the clipboard.
+  - **Search for track online**: opens the default web browser (via the desktop's URI handler) on a standard web search for the track string, URL-encoded.
 
 ## Out of Scope
 
