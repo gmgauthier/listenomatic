@@ -1,3 +1,9 @@
+listenomatic (1.0.5-1) unstable; urgency=medium
+
+  * Preset short names are cut on UTF-8 characters, never mid-codepoint.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:56:59 +0100
+
 listenomatic (1.0.4-1) unstable; urgency=medium
 
   * An empty Memory stays empty; an unreadable listenomatic.ini is kept aside as listenomatic.ini.bad instead of being overwritten.
