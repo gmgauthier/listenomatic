@@ -107,5 +107,25 @@ int main()
       CHECK(feed.programs[0].enclosure == "http://example.test/real.mp3");
   }
 
+  {
+    // A spelled-out weekday keeps the whole date.
+    const char* days =
+        "<rss><channel><title>D</title>"
+        "<item><title>Long</title><pubDate>Friday, 25 Sep 2026 12:00:00 GMT</pubDate>"
+        "<enclosure url=\"http://example.test/1.mp3\" type=\"audio/mpeg\"/></item>"
+        "<item><title>No comma</title><pubDate>Wednesday 30 Sep 2026 08:00:00 +0000</pubDate>"
+        "<enclosure url=\"http://example.test/2.mp3\" type=\"audio/mpeg\"/></item>"
+        "<item><title>No weekday</title><pubDate>1 Oct 2026 08:00:00 GMT</pubDate>"
+        "<enclosure url=\"http://example.test/3.mp3\" type=\"audio/mpeg\"/></item>"
+        "</channel></rss>";
+    CHECK(listenomatic::parse_podcast(days, feed, error));
+    CHECK(feed.programs.size() == 3);
+    if (feed.programs.size() == 3) {
+      CHECK(feed.programs[0].date == "2026-09-25");
+      CHECK(feed.programs[1].date == "2026-09-30");
+      CHECK(feed.programs[2].date == "2026-10-01");
+    }
+  }
+
   return suite_test::done("rss");
 }

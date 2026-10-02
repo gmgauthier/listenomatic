@@ -22,14 +22,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: Change shows and activate the "Loading programs…" row before the fetch returns.
 - Outcome: `fetch_show` replaces the tree with that row and does not clear `episodes_`. `play_program` indexes `episodes_` by the row. Episode 0 of the previous show starts, and `set_last_program` records that other show's enclosure on the new show.
 
-### A spelled-out weekday is cut through the year
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/rss.cpp:118`, `src/rss.cpp:135`
-- Trigger: `pubDate` of `Friday, 25 Sep 2026 12:00:00 GMT`. Three-letter `Fri,` is fine.
-- Outcome: `%*3s` skips at most three characters. Both `sscanf` forms fail. The fallback keeps the first 16 bytes: `Friday, 25 Sep 2`. The year is gone.
-
 ### Resume seek is attempted once and then forgotten
 
 - Severity: incorrect
@@ -108,3 +100,12 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: An item whose first `<enclosure type="audio/mpeg">` has an empty `url`, followed by a second enclosure with a real audio URL.
 - Outcome: `is_audio_enclosure` is true for any `audio/*` type even when the URL is empty, and that empty string is returned immediately. The item is then dropped as if it had no enclosure.
 - Fixed: v1.0.7
+
+### A spelled-out weekday is cut through the year
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/rss.cpp:118`, `src/rss.cpp:135`
+- Trigger: `pubDate` of `Friday, 25 Sep 2026 12:00:00 GMT`. Three-letter `Fri,` is fine.
+- Outcome: `%*3s` skips at most three characters. Both `sscanf` forms fail. The fallback keeps the first 16 bytes: `Friday, 25 Sep 2`. The year is gone.
+- Fixed: v1.0.8

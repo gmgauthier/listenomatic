@@ -118,8 +118,13 @@ std::string format_pubdate(const std::string& raw)
   /* RFC 822: Fri, 25 Sep 2026 02:01:51 GMT */
   int day = 0, year = 0;
   char mon[8] = {};
-  if (std::sscanf(raw.c_str(), "%*3s, %d %3s %d", &day, mon, &year) == 3 ||
-      std::sscanf(raw.c_str(), "%d %3s %d", &day, mon, &year) == 3) {
+  // Skip a weekday of any length ("Fri," or "Friday,") before the day of the month.
+  const char* p = raw.c_str();
+  while (std::isalpha(static_cast<unsigned char>(*p)))
+    ++p;
+  while (*p == ',' || std::isspace(static_cast<unsigned char>(*p)))
+    ++p;
+  if (std::sscanf(p, "%d %3s %d", &day, mon, &year) == 3) {
     int mi = 0;
     for (int i = 0; i < 12; ++i) {
       if (std::strncmp(mon, kMonths[i], 3) == 0) {
