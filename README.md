@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**v1.0.9.** Live, Shows, Catalog, last program, saved window size, 15-minute feed refresh. The seek grip stays off +15 under Clearlooks. Headless test suite and BUG-BACKLOG.md. The `.deb` is the install. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**v1.0.10.** Live, Shows, Catalog, last program, saved window size, 15-minute feed refresh. The seek grip stays off +15 under Clearlooks. Headless test suite and BUG-BACKLOG.md. The `.deb` is the install. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|
