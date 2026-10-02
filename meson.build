@@ -157,6 +157,17 @@ track_menu_tests = executable(
 )
 test('track-menu', track_menu_tests)
 
+track_click_tests = executable(
+  'listenomatic-track-click-tests',
+  'tests/test_track_click.cpp',
+  include_directories: inc,
+  dependencies: [gtkmm],
+)
+xvfb = find_program('xvfb-run', required: false)
+if xvfb.found()
+  test('track-click', xvfb, args: ['-a', track_click_tests], timeout: 60)
+endif
+
 settings_tests = executable(
   'listenomatic-settings-tests',
   'tests/test_settings.cpp',

@@ -8,6 +8,15 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 
 ## Closed
 
+### Right-click on a heard Live track does not open the menu
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/main_window.cpp` constructor, `src/track_click.hpp` `connect_track_button`
+- Trigger: Live is playing, titles are listed under Tracks, and the user right-clicks a title. A normal click selects the row.
+- Outcome: `signal_button_press_event().connect()` runs the handler after the tree view's own click handler. The tree view consumes the right-click, so `on_track_button` never runs and the menu stays down.
+- Fixed in v1.0.16: The track menu handler is connected to run before the tree view's click handler.
+
 ### Place search only queries the station name field
 
 - Severity: incorrect
