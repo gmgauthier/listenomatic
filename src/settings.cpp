@@ -7,7 +7,10 @@
 #include <glibmm/keyfile.h>
 #include <glibmm/miscutils.h>
 
+#include <glib/gstdio.h>
+
 #include <algorithm>
+#include <ctime>
 
 namespace listenomatic {
 namespace {
@@ -90,6 +93,25 @@ void save_station_group(Glib::KeyFile& kf, const char* group, const std::vector<
   }
 }
 
+/* True when the user's file already owns this list, even an empty one. */
+bool has_station_group(Glib::KeyFile& kf, const char* group)
+{
+  try {
+    return kf.has_group(group) && kf.has_key(group, "count");
+  } catch (const Glib::Error&) {
+    return false;
+  }
+}
+
+/* Move an unreadable config out of the way. Returns false if it is still in place. */
+bool set_aside(const std::string& path)
+{
+  std::string to = path + ".bad";
+  if (Glib::file_test(to, Glib::FILE_TEST_EXISTS))
+    to += "." + std::to_string(static_cast<long long>(std::time(nullptr)));
+  return g_rename(path.c_str(), to.c_str()) == 0;
+}
+
 int clamp_current(int cur, const std::vector<Station>& list)
 {
   if (cur < 0 || cur >= static_cast<int>(list.size()))
@@ -101,11 +123,18 @@ int clamp_current(int cur, const std::vector<Station>& list)
 
 void Settings::load()
 {
-  Glib::KeyFile kf;
+  const std::string path = config_path();
+  Glib::KeyFile file;
+  Glib::KeyFile none;
+  bool parsed = false;
   try {
-    kf.load_from_file(config_path());
+    parsed = file.load_from_file(path);
   } catch (const Glib::Error&) {
+    parsed = false;
   }
+  if (!parsed && Glib::file_test(path, Glib::FILE_TEST_EXISTS))
+    keep_unreadable_file_ = !set_aside(path);
+  Glib::KeyFile& kf = parsed ? file : none;
   try {
     if (kf.has_key("window", "band")) {
       const Glib::ustring b = kf.get_string("window", "band");
@@ -139,8 +168,10 @@ void Settings::load()
     }
   }
 
-  load_station_group(kf, "live", &live);
-  if (live.empty())
+  // Samples seed a first run only. A saved list, even an empty one, is the user's.
+  if (has_station_group(kf, "live"))
+    load_station_group(kf, "live", &live);
+  else
     load_station_group(samples, "live", &live);
   try {
     if (kf.has_key("live", "current"))
@@ -150,8 +181,9 @@ void Settings::load()
   current_live = clamp_current(current_live, live);
   load_presets(kf, "live", live, &live_presets);
 
-  load_station_group(kf, "shows", &shows);
-  if (shows.empty())
+  if (has_station_group(kf, "shows"))
+    load_station_group(kf, "shows", &shows);
+  else
     load_station_group(samples, "shows", &shows);
   try {
     if (kf.has_key("shows", "current"))
@@ -202,6 +234,8 @@ void Settings::load()
 
 void Settings::save() const
 {
+  if (keep_unreadable_file_)
+    return;
   Glib::KeyFile kf;
   kf.set_string("window", "band", band == Band::Shows ? "shows" : "live");
   if (window_w > 0 && window_h > 0) {
