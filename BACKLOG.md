@@ -1,6 +1,6 @@
 # Listen-O-Matic backlog
 
-Current release: **v1.0.14**. Last updated: 2026-10-02.
+Current release: **v1.0.15**. Last updated: 2026-10-02.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -10,9 +10,7 @@ None.
 
 ## Low Priority
 
-- **Tracks context menu on Live.** Right-clicking a row in the Live tab's Tracks list opens a context menu with two items:
-  - **Copy track name**: puts the track string, exactly as shown in the row, on the clipboard.
-  - **Search for track online**: opens the default web browser (via the desktop's URI handler) on a standard web search for the track string, URL-encoded.
+None.
 
 ## Out of Scope
 
@@ -25,6 +23,8 @@ None.
 - Custom title bar; Bryan’s seal; Electron; a user-bus daemon
 
 ## Shipped
+
+**v1.0.15** — Right-click a heard title on Live to copy that track string, or to search for it online.
 
 **v1.0.14** — Fix: live search also matches country, state, and a two-letter country code.
 
