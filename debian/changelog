@@ -1,3 +1,9 @@
+listenomatic (1.0.12-1) unstable; urgency=medium
+
+  * A resume seek is retried until the pipeline accepts it.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 18:12:43 +0100
+
 listenomatic (1.0.11-1) unstable; urgency=medium
 
   * The "Loading programs…" row is not an episode, so it cannot start the previous show.
