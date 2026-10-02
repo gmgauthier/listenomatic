@@ -47,6 +47,7 @@ class MainWindow : public Gtk::Window {
   void play_program(int index);
   void save_progress();
   void end_show_playback();
+  void try_pending_resume();
   void on_skip(int seconds);
   void select_station(int index, bool play);
   void load_show_feed(bool play_latest);
@@ -145,7 +146,7 @@ class MainWindow : public Gtk::Window {
   LiveLog live_log_;
   int current_program_ = -1;
   ResumeTracker playing_;
-  gint64 pending_resume_ns_ = 0;
+  ResumeSeek resume_seek_;
   bool seek_from_player_ = false;
   bool size_ready_ = false;
   std::uint64_t feed_gen_ = 0;

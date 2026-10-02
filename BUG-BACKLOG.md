@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 
 ## Open
 
-### Resume seek is attempted once and then forgotten
-
-- Severity: incorrect
-- Confidence: medium
-- Where: `src/main_window.cpp:964`
-- Trigger: Play an episode that has a saved resume. The seek runs inside the playbin `PLAYING` state change, which is often before an HTTP demuxer answers a seek query.
-- Outcome: `pending_resume_ns_` is cleared immediately. `seek` does not check the return value and is not retried. Playback stays at the start. The UI can show the resume point until the next position query overwrites it.
-
 ### iTunes results replace Starter after the user already went back
 
 - Severity: incorrect
@@ -31,6 +23,15 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Outcome: The URL is `/json/stations/search?name=` plus the term. There is no `country`, `countrycode`, or `state` parameter. A country query misses stations that are filed only under those fields. Call letters still match when they are in the name.
 
 ## Closed
+
+### Resume seek is attempted once and then forgotten
+
+- Severity: incorrect
+- Confidence: medium
+- Where: `src/main_window.cpp` `try_pending_resume`, `src/player.cpp` `seek`
+- Trigger: Play an episode that has a saved resume. The seek runs inside the playbin `PLAYING` state change, which is often before an HTTP demuxer answers a seek query.
+- Outcome: `pending_resume_ns_` is cleared immediately. `seek` does not check the return value and is not retried. Playback stays at the start. The UI can show the resume point until the next position query overwrites it.
+- Fixed in v1.0.12: The resume target stays until `seek` returns true, and later position updates try again, up to 40 times. A user seek, skip, or Stop drops the target.
 
 ### Clicking the loading row plays the previous show's episode
 
