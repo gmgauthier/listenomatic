@@ -409,13 +409,13 @@ void MainWindow::fill_live_tracks()
     row[program_cols_.title] = "No station";
     return;
   }
-  const auto it = live_heard_.find(st->url);
-  if (it == live_heard_.end() || it->second.empty()) {
+  const auto& tracks = live_log_.tracks(st->url);
+  if (tracks.empty()) {
     auto row = *program_store_->append();
     row[program_cols_.title] = "Tracks appear here when the station sends titles";
     return;
   }
-  for (const auto& t : it->second) {
+  for (const auto& t : tracks) {
     auto row = *program_store_->append();
     row[program_cols_.title] = t.title;
     row[program_cols_.date] = t.date;
@@ -977,22 +977,11 @@ void MainWindow::on_player_title(const Glib::ustring& title)
   const Station* st = current();
   if (!st)
     return;
-  Glib::ustring& now = live_now_[st->url];
-  if (now == title)
+  // The title playing now is listed at once, above the ones already heard.
+  const auto when = Glib::DateTime::create_now_local();
+  if (!live_log_.on_title(st->url, title.raw(), when.format("%Y-%m-%d").raw(),
+                          when.format("%H:%M").raw()))
     return;
-  if (!now.empty()) {
-    auto& heard = live_heard_[st->url];
-    HeardTrack rec;
-    rec.title = now;
-    const auto when = Glib::DateTime::create_now_local();
-    rec.date = when.format("%Y-%m-%d");
-    rec.heard = when.format("%H:%M");
-    heard.insert(heard.begin(), std::move(rec));
-    constexpr int kMax = 80;
-    if (static_cast<int>(heard.size()) > kMax)
-      heard.resize(static_cast<std::size_t>(kMax));
-  }
-  now = title;
   fill_live_tracks();
 }
 

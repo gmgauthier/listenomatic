@@ -1,3 +1,9 @@
+listenomatic (1.0.9-1) unstable; urgency=medium
+
+  * The live title playing now is listed in Tracks at once, not only after a different title arrives.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 11:05:08 +0100
+
 listenomatic (1.0.8-1) unstable; urgency=medium
 
   * A pubDate with a spelled-out weekday keeps its full date.

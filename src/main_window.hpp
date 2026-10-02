@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "live_log.hpp"
 #include "marquee.hpp"
 #include "player.hpp"
 #include "program.hpp"
@@ -140,13 +141,7 @@ class MainWindow : public Gtk::Window {
   Gtk::Statusbar status_;
 
   std::vector<Program> episodes_;
-  struct HeardTrack {
-    Glib::ustring title;
-    Glib::ustring date;
-    Glib::ustring heard;
-  };
-  std::map<std::string, Glib::ustring> live_now_;
-  std::map<std::string, std::vector<HeardTrack>> live_heard_;
+  LiveLog live_log_;
   int current_program_ = -1;
   ResumeTracker playing_;
   gint64 pending_resume_ns_ = 0;
