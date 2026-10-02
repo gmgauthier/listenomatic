@@ -1,6 +1,6 @@
 # Listen-O-Matic backlog
 
-Current release: **v1.0.10**. Last updated: 2026-10-02.
+Current release: **v1.0.11**. Last updated: 2026-10-02.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -25,6 +25,8 @@ None.
 - Custom title bar; Bryan’s seal; Electron; a user-bus daemon
 
 ## Shipped
+
+**v1.0.11** — Fix: the "Loading programs…" row is not an episode, so it cannot start the previous show.
 
 **v1.0.10** — Fix: choosing a different show stores the playing episode's position and stops that episode.
 
