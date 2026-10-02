@@ -575,11 +575,11 @@ void MainWindow::play_program(int index)
   save_progress();
   current_program_ = index;
   const Program& p = episodes_[static_cast<std::size_t>(index)];
-  pending_resume_ns_ = 0;
+  resume_seek_.clear();
   const std::int64_t saved = settings_.resume_for(p.enclosure);
   const std::int64_t dur = p.duration_ns;
   if (saved > 3 * 1000000000LL && (dur <= 0 || saved < dur - 5 * 1000000000LL))
-    pending_resume_ns_ = saved;
+    resume_seek_.arm(saved);
   playing_.forget();
   if (!player_.open(p.enclosure))
     return;
@@ -611,7 +611,7 @@ void MainWindow::end_show_playback()
                            player_.state() == Player::State::Stopped))
     settings_.save();
   player_.stop();
-  pending_resume_ns_ = 0;
+  resume_seek_.clear();
   current_program_ = -1;
 }
 
@@ -933,6 +933,7 @@ void MainWindow::on_volume()
 void MainWindow::on_stop()
 {
   save_progress();
+  resume_seek_.clear();
   player_.stop();
   refresh_face();
 }
@@ -941,6 +942,7 @@ void MainWindow::on_skip(int seconds)
 {
   if (!on_shows())
     return;
+  resume_seek_.clear();
   player_.refresh_position();
   gint64 ns = player_.position() + static_cast<gint64>(seconds) * GST_SECOND;
   if (ns < 0)
@@ -984,10 +986,8 @@ void MainWindow::on_memory_pick(int index)
 void MainWindow::on_player_state(Player::State state)
 {
   btn_play_.set_label(player_.state() == Player::State::Playing ? "❚❚" : "►");
-  if (state == Player::State::Playing && pending_resume_ns_ > 0) {
-    player_.seek(pending_resume_ns_);
-    pending_resume_ns_ = 0;
-  }
+  if (state == Player::State::Playing)
+    try_pending_resume();
   refresh_face();
 }
 
@@ -1012,8 +1012,19 @@ void MainWindow::on_player_title(const Glib::ustring& title)
   fill_live_tracks();
 }
 
+void MainWindow::try_pending_resume()
+{
+  const std::int64_t ns = resume_seek_.begin_attempt();
+  if (ns <= 0)
+    return;
+  if (player_.seek(ns))
+    resume_seek_.note_success();
+}
+
 void MainWindow::on_player_position(gint64 pos, gint64 dur)
 {
+  if (player_.state() == Player::State::Playing)
+    try_pending_resume();
   if (!on_shows())
     return;
   seek_.set_sensitive(dur > 0);
@@ -1047,6 +1058,7 @@ void MainWindow::on_seek()
 {
   if (seek_from_player_ || !on_shows())
     return;
+  resume_seek_.clear();
   const gint64 dur = player_.duration();
   if (dur <= 0)
     return;

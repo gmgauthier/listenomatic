@@ -126,6 +126,13 @@ feed_load_tests = executable(
 )
 test('feed-load', feed_load_tests)
 
+resume_seek_tests = executable(
+  'listenomatic-resume-seek-tests',
+  'tests/test_resume_seek.cpp',
+  include_directories: inc,
+)
+test('resume-seek', resume_seek_tests)
+
 settings_tests = executable(
   'listenomatic-settings-tests',
   'tests/test_settings.cpp',

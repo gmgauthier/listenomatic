@@ -90,14 +90,16 @@ void Player::stop()
   signal_position_.emit(position_, duration_);
 }
 
-void Player::seek(gint64 ns)
+bool Player::seek(gint64 ns)
 {
   if (!playbin_ || uri_.empty() || ns < 0)
-    return;
-  gst_element_seek_simple(playbin_, GST_FORMAT_TIME,
-                          static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
-                          ns);
-  position_ = ns;
+    return false;
+  const gboolean ok = gst_element_seek_simple(
+      playbin_, GST_FORMAT_TIME,
+      static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT), ns);
+  if (ok)
+    position_ = ns;
+  return ok;
 }
 
 void Player::start_position_timer()

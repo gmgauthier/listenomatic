@@ -25,7 +25,8 @@ class Player {
   void play();
   void pause();
   void stop();
-  void seek(gint64 ns);
+  /* False when there is nothing to seek or the pipeline rejects the seek. */
+  bool seek(gint64 ns);
   void set_volume(double volume);
   void refresh_position();
 

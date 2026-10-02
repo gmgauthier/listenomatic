@@ -41,4 +41,51 @@ class ResumeTracker {
 bool handoff_playing_show(ResumeTracker& playing, Settings& settings, std::int64_t pos_ns,
                           std::int64_t player_duration_ns, bool player_stopped);
 
+/* A resume seek often fails until the demuxer can answer it. Keep the target
+ * and spend a bounded number of tries. A success or a user seek clears it. */
+class ResumeSeek {
+ public:
+  static constexpr int kMaxAttempts = 40;
+
+  void arm(std::int64_t ns)
+  {
+    target_ = ns > 0 ? ns : 0;
+    attempts_ = 0;
+  }
+  void clear()
+  {
+    target_ = 0;
+    attempts_ = 0;
+  }
+  bool pending() const
+  {
+    return target_ > 0;
+  }
+  std::int64_t target() const
+  {
+    return target_;
+  }
+
+  /* The next target to try, or 0 when nothing is pending or the budget is spent. */
+  std::int64_t begin_attempt()
+  {
+    if (target_ <= 0)
+      return 0;
+    if (attempts_ >= kMaxAttempts) {
+      clear();
+      return 0;
+    }
+    ++attempts_;
+    return target_;
+  }
+  void note_success()
+  {
+    clear();
+  }
+
+ private:
+  std::int64_t target_ = 0;
+  int attempts_ = 0;
+};
+
 }  // namespace listenomatic
