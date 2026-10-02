@@ -453,11 +453,14 @@ void MainWindow::select_station(int index, bool play)
   auto& list = stations();
   if (index < 0 || index >= static_cast<int>(list.size()))
     return;
+  const int previous = current_index();
   current_index() = index;
   fill_memory();
   refresh_presets();
   settings_.save();
   if (on_shows()) {
+    if (index != previous)
+      end_show_playback();
     load_show_feed(false);
     return;
   }
@@ -599,6 +602,17 @@ void MainWindow::save_progress()
   player_.refresh_position();
   if (playing_.save(settings_, player_.position(), player_.duration()))
     settings_.save();
+}
+
+void MainWindow::end_show_playback()
+{
+  player_.refresh_position();
+  if (handoff_playing_show(playing_, settings_, player_.position(), player_.duration(),
+                           player_.state() == Player::State::Stopped))
+    settings_.save();
+  player_.stop();
+  pending_resume_ns_ = 0;
+  current_program_ = -1;
 }
 
 void MainWindow::fill_programs()
@@ -766,8 +780,11 @@ void MainWindow::on_station_add()
   int& cur = dlg.is_show() ? settings_.current_show : settings_.current_live;
   for (int i = 0; i < static_cast<int>(list.size()); ++i) {
     if (list[static_cast<std::size_t>(i)].url == st.url) {
+      const int previous = cur;
       cur = i;
       if (dlg.is_show() == on_shows()) {
+        if (on_shows() && i != previous)
+          end_show_playback();
         fill_memory();
         refresh_presets();
         if (on_shows())
@@ -789,6 +806,8 @@ void MainWindow::on_station_add()
       live_.set_active(true);
     return;
   }
+  if (on_shows())
+    end_show_playback();
   fill_memory();
   refresh_presets();
   if (on_shows())
@@ -815,11 +834,16 @@ void MainWindow::add_from_catalog(Station st, bool is_show)
   int& cur = is_show ? settings_.current_show : settings_.current_live;
   for (int i = 0; i < static_cast<int>(list.size()); ++i) {
     if (list[static_cast<std::size_t>(i)].url == st.url) {
+      const int previous = cur;
       cur = i;
       settings_.save();
       if (is_show == on_shows()) {
+        if (is_show && i != previous)
+          end_show_playback();
         fill_memory();
         refresh_presets();
+        if (is_show && i != previous)
+          load_show_feed(false);
       }
       set_status(Glib::ustring::compose("Already in Memory: %1", st.name));
       return;
@@ -829,6 +853,8 @@ void MainWindow::add_from_catalog(Station st, bool is_show)
   cur = static_cast<int>(list.size()) - 1;
   settings_.save();
   if (is_show == on_shows()) {
+    if (is_show)
+      end_show_playback();
     fill_memory();
     refresh_presets();
     if (is_show)

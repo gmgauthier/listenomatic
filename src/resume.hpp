@@ -34,4 +34,11 @@ class ResumeTracker {
   std::int64_t feed_duration_ns_ = 0;
 };
 
+/* The show on screen is about to change. Store the playing episode's position
+ * unless the player is already stopped, then drop the tracker so a later save
+ * cannot attach this playback to the new show. Returns true when a resume row
+ * was written or cleared. */
+bool handoff_playing_show(ResumeTracker& playing, Settings& settings, std::int64_t pos_ns,
+                          std::int64_t player_duration_ns, bool player_stopped);
+
 }  // namespace listenomatic

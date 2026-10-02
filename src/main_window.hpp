@@ -46,6 +46,7 @@ class MainWindow : public Gtk::Window {
   void play_current();
   void play_program(int index);
   void save_progress();
+  void end_show_playback();
   void on_skip(int seconds);
   void select_station(int index, bool play);
   void load_show_feed(bool play_latest);

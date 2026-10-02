@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 
 ## Open
 
-### Changing show leaves the old episode playing and saves its position onto the new one
-
-- Severity: data-loss
-- Confidence: high
-- Where: `src/main_window.cpp:460`, `src/main_window.cpp:589`
-- Trigger: Play a show, then pick another show from Memory, a preset, or Catalog on the Shows band.
-- Outcome: `select_station` calls `load_show_feed(false)` and returns. It does not call `save_progress()` or `player_.stop()`. Audio keeps playing the previous enclosure while the list and `current_program_` switch to the new show. The next pause, stop, or quit writes that position onto the new episode's enclosure, and the episode you were listening to is not updated.
-
 ### Clicking the loading row plays the previous show's episode
 
 - Severity: incorrect
@@ -47,6 +39,15 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Outcome: The URL is `/json/stations/search?name=` plus the term. There is no `country`, `countrycode`, or `state` parameter. A country query misses stations that are filed only under those fields. Call letters still match when they are in the name.
 
 ## Closed
+
+### Changing show leaves the old episode playing and saves its position onto the new one
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/main_window.cpp` `select_station`, `end_show_playback`
+- Trigger: Play a show, then pick another show from Memory, a preset, Catalog, or Add on the Shows band.
+- Outcome: `select_station` calls `load_show_feed(false)` and returns. It does not call `save_progress()` or `player_.stop()`. Audio keeps playing the previous enclosure while the list and `current_program_` switch to the new show. The next pause, stop, or quit writes that position onto the new episode's enclosure, and the episode you were listening to is not updated.
+- Fixed in v1.0.10: Choosing a different show stores the playing episode's position, stops the player, and drops the tracker before the new feed loads. Choosing the show already on screen leaves playback running.
 
 ### Leaving Shows does not save the resume, and coming back can write the live position onto the episode
 
