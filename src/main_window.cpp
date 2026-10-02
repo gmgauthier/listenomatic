@@ -514,6 +514,7 @@ void MainWindow::apply_band()
   settings_.band = shows ? Band::Shows : Band::Live;
   save_progress();
   player_.stop();
+  playing_.forget();
   btn_back_.set_sensitive(shows);
   btn_fwd_.set_sensitive(shows);
   seek_.set_sensitive(false);
@@ -556,6 +557,8 @@ void MainWindow::play_current()
     set_status("Add a live stream first");
     return;
   }
+  save_progress();
+  playing_.forget();
   if (!player_.open(st->url))
     return;
   player_.set_volume(settings_.volume);
@@ -574,8 +577,10 @@ void MainWindow::play_program(int index)
   const std::int64_t dur = p.duration_ns;
   if (saved > 3 * 1000000000LL && (dur <= 0 || saved < dur - 5 * 1000000000LL))
     pending_resume_ns_ = saved;
+  playing_.forget();
   if (!player_.open(p.enclosure))
     return;
+  playing_.start(p.enclosure, p.duration_ns);
   if (const Station* st = current())
     settings_.set_last_program(st->url, p.enclosure);
   player_.set_volume(settings_.volume);
@@ -588,22 +593,12 @@ void MainWindow::play_program(int index)
 
 void MainWindow::save_progress()
 {
-  if (!on_shows() || current_program_ < 0 || current_program_ >= static_cast<int>(episodes_.size()))
-    return;
-  if (player_.state() == Player::State::Stopped)
+  // Save against the episode the player is on, not the band or list on screen.
+  if (!playing_.active() || player_.state() == Player::State::Stopped)
     return;
   player_.refresh_position();
-  const Program& p = episodes_[static_cast<std::size_t>(current_program_)];
-  const gint64 pos = player_.position();
-  const gint64 dur = player_.duration() > 0 ? player_.duration() : p.duration_ns;
-  if (pos < 3 * GST_SECOND) {
-    settings_.clear_resume(p.enclosure);
-  } else if (dur > 0 && pos >= dur - 5 * GST_SECOND) {
-    settings_.clear_resume(p.enclosure);
-  } else {
-    settings_.set_resume(p.enclosure, pos);
-  }
-  settings_.save();
+  if (playing_.save(settings_, player_.position(), player_.duration()))
+    settings_.save();
 }
 
 void MainWindow::fill_programs()
@@ -854,6 +849,7 @@ void MainWindow::on_station_remove()
     return;
   }
   player_.stop();
+  playing_.forget();
   list.erase(list.begin() + idx);
   auto& slots = presets();
   for (int i = 0; i < 6; ++i) {

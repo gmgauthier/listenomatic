@@ -5,6 +5,7 @@
 #include "marquee.hpp"
 #include "player.hpp"
 #include "program.hpp"
+#include "resume.hpp"
 #include "settings.hpp"
 
 #include <gtkmm.h>
@@ -147,6 +148,7 @@ class MainWindow : public Gtk::Window {
   std::map<std::string, Glib::ustring> live_now_;
   std::map<std::string, std::vector<HeardTrack>> live_heard_;
   int current_program_ = -1;
+  ResumeTracker playing_;
   gint64 pending_resume_ns_ = 0;
   bool seek_from_player_ = false;
   bool size_ready_ = false;
