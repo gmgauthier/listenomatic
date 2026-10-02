@@ -9,9 +9,6 @@
 namespace listenomatic {
 namespace {
 
-const char* kHost = "https://all.api.radio-browser.info";
-const int kLimit = 40;
-
 std::string member_str(JsonObject* obj, const char* key)
 {
   if (!obj || !json_object_has_member(obj, key))
@@ -81,30 +78,52 @@ std::vector<Station> search_radio_browser(const std::string& term, std::string& 
                                           GCancellable* cancel)
 {
   error.clear();
-  if (term.empty()) {
+  const auto urls = radio_browser_search_urls(term);
+  if (urls.empty()) {
     error = "Type a name, place, or call letters";
     return {};
   }
 
-  gchar* esc = g_uri_escape_string(term.c_str(), nullptr, FALSE);
-  const std::string url = std::string(kHost) + "/json/stations/search?name=" + (esc ? esc : "") +
-                          "&limit=" + std::to_string(kLimit) + "&hidebroken=true";
-  g_free(esc);
-
-  const std::string body = http_get(url, error, cancel);
-  if (body.empty())
-    return {};
-  auto out = parse_station_array(body, error);
-  if (out.empty() && error.empty())
-    error = "No live stations matched";
-  return out;
+  std::vector<Station> merged;
+  std::string failure;
+  for (const auto& url : urls) {
+    if (cancel && g_cancellable_is_cancelled(cancel))
+      break;
+    if (merged.size() >= static_cast<std::size_t>(kRadioBrowserSearchLimit))
+      break;
+    std::string one_error;
+    const std::string body = http_get(url, one_error, cancel);
+    if (body.empty()) {
+      if (failure.empty())
+        failure = one_error;
+      continue;
+    }
+    auto part = parse_station_array(body, one_error);
+    for (auto& st : part) {
+      bool seen = false;
+      for (const auto& have : merged) {
+        if (have.url == st.url) {
+          seen = true;
+          break;
+        }
+      }
+      if (seen)
+        continue;
+      merged.push_back(std::move(st));
+      if (merged.size() >= static_cast<std::size_t>(kRadioBrowserSearchLimit))
+        break;
+    }
+  }
+  if (merged.empty())
+    error = failure.empty() ? "No live stations matched" : failure;
+  return merged;
 }
 
 std::vector<Station> browse_radio_browser_popular(std::string& error, GCancellable* cancel)
 {
   error.clear();
   const std::string url =
-      std::string(kHost) +
+      std::string(kRadioBrowserHost) +
       "/json/stations/search?order=clickcount&reverse=true&limit=80&hidebroken=true";
   const std::string body = http_get(url, error, cancel);
   if (body.empty())

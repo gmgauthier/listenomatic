@@ -12,6 +12,7 @@ project(
 )
 
 gtkmm = dependency('gtkmm-3.0')
+glib = dependency('glib-2.0')
 gst = dependency('gstreamer-1.0')
 soup = dependency('libsoup-3.0')
 json_glib = dependency('json-glib-1.0')
@@ -139,6 +140,14 @@ show_result_tests = executable(
   include_directories: inc,
 )
 test('show-result', show_result_tests)
+
+radio_search_tests = executable(
+  'listenomatic-radio-search-tests',
+  'tests/test_radio_search.cpp',
+  include_directories: inc,
+  dependencies: [glib],
+)
+test('radio-search', radio_search_tests)
 
 settings_tests = executable(
   'listenomatic-settings-tests',

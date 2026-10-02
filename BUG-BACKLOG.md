@@ -6,15 +6,16 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 
 ## Open
 
+## Closed
+
 ### Place search only queries the station name field
 
 - Severity: incorrect
 - Confidence: high
-- Where: `src/radiobrowser.cpp:90`
+- Where: `src/radiobrowser.hpp` `radio_browser_search_urls`
 - Trigger: Catalog or Add search for a country or state that is not in the station name. The field says "name, place, or call letters".
 - Outcome: The URL is `/json/stations/search?name=` plus the term. There is no `country`, `countrycode`, or `state` parameter. A country query misses stations that are filed only under those fields. Call letters still match when they are in the name.
-
-## Closed
+- Fixed in v1.0.14: Country code, country, and state are each their own search, tried before the station name. A two-letter term is also sent as an uppercase country code. The directory ANDs fields on one request, so they are not combined.
 
 ### iTunes results replace Starter after the user already went back
 
