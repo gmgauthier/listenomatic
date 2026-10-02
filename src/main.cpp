@@ -2,6 +2,7 @@
 
 #include "application.hpp"
 
+#include <gdk/gdk.h>
 #include <glib.h>
 #include <glibmm/miscutils.h>
 #include <gst/gst.h>
@@ -71,8 +72,9 @@ void setup_gst_plugin_path()
 
 int main(int argc, char* argv[])
 {
-  if (g_getenv("GDK_BACKEND") == nullptr)
-    g_setenv("GDK_BACKEND", "x11", FALSE);
+  /* X11 where GTK has it (LCOS), else whatever it does have (Quartz on
+   * macOS). GDK_BACKEND in the environment still wins. */
+  gdk_set_allowed_backends("x11,*");
   g_set_prgname("listenomatic");
   prefer_light_theme();
   setup_gst_plugin_path();
