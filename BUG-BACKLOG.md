@@ -22,14 +22,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: Change shows and activate the "Loading programs…" row before the fetch returns.
 - Outcome: `fetch_show` replaces the tree with that row and does not clear `episodes_`. `play_program` indexes `episodes_` by the row. Episode 0 of the previous show starts, and `set_last_program` records that other show's enclosure on the new show.
 
-### Preset short names are cut mid-codepoint
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/station.cpp:15`
-- Trigger: A station whose short name is longer than 8 bytes and the cut lands inside a UTF-8 sequence. `日本語放送局` is one. The cut is on `std::string::size`, which is bytes.
-- Outcome: `refresh_presets` uses that string as the button label. It is not valid UTF-8, so the preset does not show a real short name.
-
 ### An enclosure URL's query string hides the audio extension
 
 - Severity: incorrect
@@ -105,3 +97,12 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: Remove every Live or Shows station and restart. Or start with a `listenomatic.ini` that `Glib::KeyFile` rejects.
 - Outcome: `load()` swallows a failed `load_from_file`. An empty live or shows group is filled from `samples.ini`. The window constructor always calls `settings_.save()`, so the sample list is written back. Resume positions and last-program entries from a file that failed to parse are dropped. An intentional empty Memory comes back full.
 - Fixed: v1.0.4
+
+### Preset short names are cut mid-codepoint
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/station.cpp:15`
+- Trigger: A station whose short name is longer than 8 bytes and the cut lands inside a UTF-8 sequence. `日本語放送局` is one. The cut is on `std::string::size`, which is bytes.
+- Outcome: `refresh_presets` uses that string as the button label. It is not valid UTF-8, so the preset does not show a real short name.
+- Fixed: v1.0.5
