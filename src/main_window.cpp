@@ -570,7 +570,7 @@ void MainWindow::play_current()
 
 void MainWindow::play_program(int index)
 {
-  if (index < 0 || index >= static_cast<int>(episodes_.size()))
+  if (!episode_playable(index, episodes_.size()))
     return;
   save_progress();
   current_program_ = index;
@@ -649,6 +649,7 @@ void MainWindow::fetch_show(bool play_latest, bool quiet)
     keep = episodes_[static_cast<std::size_t>(current_program_)].enclosure;
   const std::uint64_t gen = ++feed_gen_;
   if (!quiet) {
+    clear_programs_for_load(episodes_, current_program_);
     program_store_->clear();
     auto row = *program_store_->append();
     row[program_cols_.title] = "Loading programs…";

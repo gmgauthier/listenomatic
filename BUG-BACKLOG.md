@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 
 ## Open
 
-### Clicking the loading row plays the previous show's episode
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/main_window.cpp:642`, `src/main_window.cpp:567`
-- Trigger: Change shows and activate the "Loading programs…" row before the fetch returns.
-- Outcome: `fetch_show` replaces the tree with that row and does not clear `episodes_`. `play_program` indexes `episodes_` by the row. Episode 0 of the previous show starts, and `set_last_program` records that other show's enclosure on the new show.
-
 ### Resume seek is attempted once and then forgotten
 
 - Severity: incorrect
@@ -39,6 +31,15 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Outcome: The URL is `/json/stations/search?name=` plus the term. There is no `country`, `countrycode`, or `state` parameter. A country query misses stations that are filed only under those fields. Call letters still match when they are in the name.
 
 ## Closed
+
+### Clicking the loading row plays the previous show's episode
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/main_window.cpp` `fetch_show`, `play_program`
+- Trigger: Change shows and activate the "Loading programs…" row before the fetch returns.
+- Outcome: `fetch_show` replaces the tree with that row and does not clear `episodes_`. `play_program` indexes `episodes_` by the row. Episode 0 of the previous show starts, and `set_last_program` records that other show's enclosure on the new show.
+- Fixed in v1.0.11: Showing the loading row clears the episode list and the current program. That row is not an episode, so activating it does not start the previous show or store its enclosure.
 
 ### Changing show leaves the old episode playing and saves its position onto the new one
 
