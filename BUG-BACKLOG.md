@@ -6,14 +6,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 
 ## Open
 
-### iTunes results replace Starter after the user already went back
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/catalog_window.cpp:287`, `src/catalog_window.cpp:315`
-- Trigger: Search iTunes, then press Starter before the response arrives.
-- Outcome: `on_show_starter` does not cancel the in-flight search. The idle callback always calls `apply_shows`, which replaces the list. Starter paints, then the late results paint over it. `show_starter_` can be left true while the list is the search result, so the next keystroke filters the starter list instead.
-
 ### Place search only queries the station name field
 
 - Severity: incorrect
@@ -23,6 +15,15 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Outcome: The URL is `/json/stations/search?name=` plus the term. There is no `country`, `countrycode`, or `state` parameter. A country query misses stations that are filed only under those fields. Call letters still match when they are in the name.
 
 ## Closed
+
+### iTunes results replace Starter after the user already went back
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/catalog_window.cpp` `show_starter`, `src/show_result.hpp` `itunes_result_applies`
+- Trigger: Search iTunes, then press Starter before the response arrives.
+- Outcome: `on_show_starter` does not cancel the in-flight search. The idle callback always calls `apply_shows`, which replaces the list. Starter paints, then the late results paint over it. `show_starter_` can be left true while the list is the search result, so the next keystroke filters the starter list instead.
+- Fixed in v1.0.13: Returning to the starter list cancels the search and bumps its generation. A late iTunes payload paints only when that generation is still current and the starter list is not showing.
 
 ### Resume seek is attempted once and then forgotten
 

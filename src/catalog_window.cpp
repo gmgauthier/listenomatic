@@ -4,6 +4,7 @@
 #include "itunes.hpp"
 #include "paths.hpp"
 #include "radiobrowser.hpp"
+#include "show_result.hpp"
 
 #include <giomm.h>
 #include <glibmm/fileutils.h>
@@ -198,6 +199,12 @@ void CatalogWindow::fill_shows(const std::vector<Station>& hits)
 
 void CatalogWindow::show_starter()
 {
+  // A return to the starter list retires every in-flight iTunes search.
+  ++show_search_gen_;
+  if (show_cancel_)
+    show_cancel_->cancel();
+  show_busy_ = false;
+  show_search_btn_.set_sensitive(true);
   show_starter_ = true;
   const Glib::ustring needle = show_query_.get_text().lowercase();
   std::vector<Station> hits;
@@ -303,20 +310,25 @@ void CatalogWindow::on_show_search()
   }
   show_busy_ = true;
   show_starter_ = false;
+  ++show_search_gen_;
+  const std::uint64_t gen = show_search_gen_;
   show_search_btn_.set_sensitive(false);
   show_status_.set_text("Searching iTunes…");
   show_cancel_->cancel();
   show_cancel_ = Gio::Cancellable::create();
   auto alive = alive_;
   auto cancel = show_cancel_;
-  std::thread([this, alive, cancel, term]() {
+  std::thread([this, alive, cancel, term, gen]() {
     std::string err;
     auto hits = search_itunes_podcasts(term, err, cancel->gobj());
-    Glib::signal_idle().connect_once([this, alive, hits = std::move(hits), err = std::move(err)]() {
-      if (!*alive)
-        return;
-      apply_shows(hits, err);
-    });
+    Glib::signal_idle().connect_once(
+        [this, alive, hits = std::move(hits), err = std::move(err), gen]() {
+          if (!*alive)
+            return;
+          if (!itunes_result_applies(gen, show_search_gen_, show_starter_))
+            return;
+          apply_shows(hits, err);
+        });
   }).detach();
 }
 

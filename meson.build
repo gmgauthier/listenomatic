@@ -133,6 +133,13 @@ resume_seek_tests = executable(
 )
 test('resume-seek', resume_seek_tests)
 
+show_result_tests = executable(
+  'listenomatic-show-result-tests',
+  'tests/test_show_result.cpp',
+  include_directories: inc,
+)
+test('show-result', show_result_tests)
+
 settings_tests = executable(
   'listenomatic-settings-tests',
   'tests/test_settings.cpp',
