@@ -6,6 +6,7 @@
 
 #include <gtkmm.h>
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -99,6 +100,7 @@ class CatalogWindow : public Gtk::Window {
   bool live_busy_ = false;
   bool show_busy_ = false;
   bool show_starter_ = true;
+  std::uint64_t show_search_gen_ = 0;
   sigc::signal<void, Station, bool> signal_add_;
 };
 
