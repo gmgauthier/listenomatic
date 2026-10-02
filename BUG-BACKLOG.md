@@ -46,14 +46,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: Catalog or Add search for a country or state that is not in the station name. The field says "name, place, or call letters".
 - Outcome: The URL is `/json/stations/search?name=` plus the term. There is no `country`, `countrycode`, or `state` parameter. A country query misses stations that are filed only under those fields. Call letters still match when they are in the name.
 
-### The current live title is not a track until a different title arrives
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/main_window.cpp:984`
-- Trigger: Tune a live station that sends one title, or stop before a second distinct title.
-- Outcome: The LCD shows the title. Tracks lists `live_heard_` only. The current title is pushed onto that list only when a different title arrives and replaces `live_now_`. The song just heard stays off the list.
-
 ## Closed
 
 ### Leaving Shows does not save the resume, and coming back can write the live position onto the episode
@@ -109,3 +101,12 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: `pubDate` of `Friday, 25 Sep 2026 12:00:00 GMT`. Three-letter `Fri,` is fine.
 - Outcome: `%*3s` skips at most three characters. Both `sscanf` forms fail. The fallback keeps the first 16 bytes: `Friday, 25 Sep 2`. The year is gone.
 - Fixed: v1.0.8
+
+### The current live title is not a track until a different title arrives
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/main_window.cpp:984`
+- Trigger: Tune a live station that sends one title, or stop before a second distinct title.
+- Outcome: The LCD shows the title. Tracks lists `live_heard_` only. The current title is pushed onto that list only when a different title arrives and replaces `live_now_`. The song just heard stays off the list.
+- Fixed: v1.0.9

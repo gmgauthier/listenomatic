@@ -11,7 +11,7 @@ Suite design: `lcos-projects/LISTEN-O-MATIC.md`
 
 ## Status (2026-10-02)
 
-**v1.0.8.** Shipped. Patch: a pubDate with a spelled-out weekday keeps its full date.
+**v1.0.9.** Shipped. Patch: the current live title is listed in Tracks as soon as it arrives.
 
 | Slice | Branch / PR | State |
 |---|---|---|
@@ -22,7 +22,7 @@ Suite design: `lcos-projects/LISTEN-O-MATIC.md`
 | **M4** One show | `feature/m4-one-show` | Done. RSS, programs, enclosure, seek. Not merged. |
 | **M5** Catalog | `feature/m5-catalog` | Done. Station → Catalog…. Not merged. |
 | **M6** Polish | `feature/m6-polish` | Done. Last program, window size, 15-minute feed refresh. Not merged. |
-| **M7** Package | `feature/m7-package` | Shipped. v1.0.0, then v1.0.1, then v1.0.2, then v1.0.3, then v1.0.4, then v1.0.5, then v1.0.6, then v1.0.7, then v1.0.8. |
+| **M7** Package | `feature/m7-package` | Shipped. v1.0.0, then v1.0.1, then v1.0.2, then v1.0.3, then v1.0.4, then v1.0.5, then v1.0.6, then v1.0.7, then v1.0.8, then v1.0.9. |
 
 ## 1. Locked decisions
 
@@ -118,9 +118,9 @@ ICY title already in M1. Resume-from-last-position and ±15s skip landed with M4
 
 ### M7 — Package
 
-**Shipped.** Version `1.0.8`.
+**Shipped.** Version `1.0.9`.
 
-`scripts/release.sh` writes `dist/listenomatic-1.0.8.tar.xz`, `dist/listenomatic_1.0.8-1_amd64.deb`, and an AppImage when `linuxdeploy` is on `PATH`. The `.deb` is the LCOS install. Sideboard lists the package and installs the `.deb` from the GitHub release.
+`scripts/release.sh` writes `dist/listenomatic-1.0.9.tar.xz`, `dist/listenomatic_1.0.9-1_amd64.deb`, and an AppImage when `linuxdeploy` is on `PATH`. The `.deb` is the LCOS install. Sideboard lists the package and installs the `.deb` from the GitHub release.
 
 ## 5. Parked
 

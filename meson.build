@@ -1,7 +1,7 @@
 project(
   'listenomatic',
   'cpp',
-  version: '1.0.8',
+  version: '1.0.9',
   license: 'Unlicense',
   meson_version: '>=0.56',
   default_options: [
@@ -44,6 +44,7 @@ executable(
   'src/itunes.cpp',
   'src/rss.cpp',
   'src/resume.cpp',
+  'src/live_log.cpp',
   'src/add_dialog.cpp',
   'src/catalog_window.cpp',
   'src/main_window.cpp',
@@ -124,3 +125,11 @@ station_tests = executable(
   include_directories: inc,
 )
 test('station', station_tests)
+
+live_log_tests = executable(
+  'listenomatic-live-log-tests',
+  'tests/test_live_log.cpp',
+  'src/live_log.cpp',
+  include_directories: inc,
+)
+test('live_log', live_log_tests)
