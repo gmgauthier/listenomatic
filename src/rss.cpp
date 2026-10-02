@@ -67,10 +67,13 @@ bool is_audio_enclosure(const std::string& url, const std::string& type)
     return true;
   if (t.compare(0, 6, "video/") == 0)
     return false;
-  auto dot = url.find_last_of('.');
-  if (dot == std::string::npos)
+  // The extension belongs to the last path segment, before any query or fragment.
+  const std::string path = url.substr(0, url.find_first_of("?#"));
+  const auto slash = path.find_last_of('/');
+  auto dot = path.find_last_of('.');
+  if (dot == std::string::npos || (slash != std::string::npos && dot < slash))
     return !url.empty() && t.empty();
-  std::string ext = url.substr(dot);
+  std::string ext = path.substr(dot);
   for (char& c : ext)
     c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
   return ext == ".mp3" || ext == ".m4a" || ext == ".aac" || ext == ".ogg" || ext == ".opus" ||

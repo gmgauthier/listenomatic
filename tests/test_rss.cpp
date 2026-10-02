@@ -70,5 +70,25 @@ int main()
   CHECK(feed.programs[0].enclosure == "http://example.test/a.m4a");
   CHECK(feed.programs[0].date == "2024-01-01");
 
+  {
+    // With no audio type, the extension is read from the path, not the query string.
+    const char* q =
+        "<rss><channel><title>Q</title>"
+        "<item><title>Token</title>"
+        "<enclosure url=\"https://cdn.example.com/ep.mp3?token=abc\"/></item>"
+        "<item><title>Frag</title>"
+        "<enclosure url=\"https://cdn.example.com/b.M4A#t=10\" type=\"application/octet-stream\"/>"
+        "</item>"
+        "<item><title>Dotted query</title>"
+        "<enclosure url=\"https://cdn.example.com/page?file=x.mp3\" type=\"text/html\"/></item>"
+        "</channel></rss>";
+    CHECK(listenomatic::parse_podcast(q, feed, error));
+    CHECK(feed.programs.size() == 2);
+    if (feed.programs.size() == 2) {
+      CHECK(feed.programs[0].enclosure == "https://cdn.example.com/ep.mp3?token=abc");
+      CHECK(feed.programs[1].enclosure == "https://cdn.example.com/b.M4A#t=10");
+    }
+  }
+
   return suite_test::done("rss");
 }

@@ -1,3 +1,9 @@
+listenomatic (1.0.6-1) unstable; urgency=medium
+
+  * Enclosure extensions are read from the URL path, so a query string no longer hides .mp3.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 10:58:33 +0100
+
 listenomatic (1.0.5-1) unstable; urgency=medium
 
   * Preset short names are cut on UTF-8 characters, never mid-codepoint.
