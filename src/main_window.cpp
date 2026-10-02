@@ -7,6 +7,7 @@
 #include "fetch.hpp"
 #include "paths.hpp"
 #include "rss.hpp"
+#include "track_click.hpp"
 #include "track_menu.hpp"
 
 #include <algorithm>
@@ -176,7 +177,7 @@ MainWindow::MainWindow()
   track_menu_.append(*copy_item);
   track_menu_.append(*search_item);
   track_menu_.show_all();
-  programs_.signal_button_press_event().connect(sigc::mem_fun(*this, &MainWindow::on_track_button));
+  connect_track_button(programs_, sigc::mem_fun(*this, &MainWindow::on_track_button));
   programs_scroll_.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
   programs_scroll_.set_propagate_natural_width(false);
   programs_scroll_.set_min_content_height(160);
