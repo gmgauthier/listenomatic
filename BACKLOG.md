@@ -1,6 +1,6 @@
 # Listen-O-Matic backlog
 
-Current release: **v1.0.13**. Last updated: 2026-10-02.
+Current release: **v1.0.14**. Last updated: 2026-10-02.
 
 Kitchen radio. Live streams and podcast shows. Binary `listenomatic`. Suite catalog: `lcos-projects/PRODUCT-BACKLOG.md`. Design: `lcos-projects/LISTEN-O-MATIC.md`. Plan: [DEVELOPMENT.md](DEVELOPMENT.md).
 
@@ -25,6 +25,8 @@ None.
 - Custom title bar; Bryan’s seal; Electron; a user-bus daemon
 
 ## Shipped
+
+**v1.0.14** — Fix: live search also matches country, state, and a two-letter country code.
 
 **v1.0.13** — Fix: a late iTunes result no longer replaces the starter list.
 
