@@ -1,3 +1,9 @@
+listenomatic (1.0.7-1) unstable; urgency=medium
+
+  * A blank audio enclosure no longer hides a later real one in the same item.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Fri, 02 Oct 2026 11:01:44 +0100
+
 listenomatic (1.0.6-1) unstable; urgency=medium
 
   * Enclosure extensions are read from the URL path, so a query string no longer hides .mp3.

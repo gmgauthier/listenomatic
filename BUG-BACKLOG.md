@@ -22,14 +22,6 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: Change shows and activate the "Loading programs…" row before the fetch returns.
 - Outcome: `fetch_show` replaces the tree with that row and does not clear `episodes_`. `play_program` indexes `episodes_` by the row. Episode 0 of the previous show starts, and `set_last_program` records that other show's enclosure on the new show.
 
-### A blank audio enclosure hides a later real one
-
-- Severity: incorrect
-- Confidence: high
-- Where: `src/rss.cpp:143`
-- Trigger: An item whose first `<enclosure type="audio/mpeg">` has an empty `url`, followed by a second enclosure with a real audio URL.
-- Outcome: `is_audio_enclosure` is true for any `audio/*` type even when the URL is empty, and that empty string is returned immediately. The item is then dropped as if it had no enclosure.
-
 ### A spelled-out weekday is cut through the year
 
 - Severity: incorrect
@@ -107,3 +99,12 @@ Reviewed 2026-10-01 against the 1.0.1 sources.
 - Trigger: An `<enclosure>` whose `type` is missing or not `audio/*` / `video/*`, and whose URL is `https://cdn.example.com/ep.mp3?token=abc`.
 - Outcome: The extension is everything after the last dot, including the query. `.mp3?token=abc` is not `.mp3`, so `is_audio_enclosure` is false and the item is skipped. A feed of only those items returns "No audio programs in this feed". The same URL with `type="audio/mpeg"` is kept.
 - Fixed: v1.0.6
+
+### A blank audio enclosure hides a later real one
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/rss.cpp:143`
+- Trigger: An item whose first `<enclosure type="audio/mpeg">` has an empty `url`, followed by a second enclosure with a real audio URL.
+- Outcome: `is_audio_enclosure` is true for any `audio/*` type even when the URL is empty, and that empty string is returned immediately. The item is then dropped as if it had no enclosure.
+- Fixed: v1.0.7

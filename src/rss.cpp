@@ -138,20 +138,31 @@ std::string format_pubdate(const std::string& raw)
   return raw.size() > 16 ? raw.substr(0, 16) : raw;
 }
 
+std::string trimmed(std::string s)
+{
+  while (!s.empty() && std::isspace(static_cast<unsigned char>(s.front())))
+    s.erase(s.begin());
+  while (!s.empty() && std::isspace(static_cast<unsigned char>(s.back())))
+    s.pop_back();
+  return s;
+}
+
 std::string item_enclosure(xmlNodePtr item)
 {
+  // A blank URL is never an enclosure, whatever its type; keep looking past it.
   for (xmlNodePtr c = item ? item->children : nullptr; c; c = c->next) {
     if (c->type != XML_ELEMENT_NODE)
       continue;
     if (ieq(c->name, "enclosure")) {
-      const std::string url = attr(c, "url");
-      if (is_audio_enclosure(url, attr(c, "type")))
+      const std::string url = trimmed(attr(c, "url"));
+      if (!url.empty() && is_audio_enclosure(url, attr(c, "type")))
         return url;
     }
     if (ieq(c->name, "link")) {
       const std::string rel = attr(c, "rel");
-      const std::string href = attr(c, "href");
-      if ((rel == "enclosure" || rel == "media") && is_audio_enclosure(href, attr(c, "type")))
+      const std::string href = trimmed(attr(c, "href"));
+      if ((rel == "enclosure" || rel == "media") && !href.empty() &&
+          is_audio_enclosure(href, attr(c, "type")))
         return href;
     }
   }

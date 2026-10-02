@@ -90,5 +90,22 @@ int main()
     }
   }
 
+  {
+    // A blank audio enclosure must not hide a later real one.
+    const char* blank =
+        "<rss><channel><title>B</title>"
+        "<item><title>Second wins</title>"
+        "<enclosure url=\"\" type=\"audio/mpeg\"/>"
+        "<enclosure url=\"  \" type=\"audio/mpeg\"/>"
+        "<enclosure url=\"http://example.test/real.mp3\" type=\"audio/mpeg\"/>"
+        "</item>"
+        "<item><title>Only blank</title><enclosure url=\"\" type=\"audio/mpeg\"/></item>"
+        "</channel></rss>";
+    CHECK(listenomatic::parse_podcast(blank, feed, error));
+    CHECK(feed.programs.size() == 1);
+    if (feed.programs.size() == 1)
+      CHECK(feed.programs[0].enclosure == "http://example.test/real.mp3");
+  }
+
   return suite_test::done("rss");
 }
