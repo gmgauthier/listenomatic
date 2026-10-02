@@ -78,6 +78,9 @@ class MainWindow : public Gtk::Window {
   void on_play();
   void on_preset(int slot);
   void on_memory_pick(int index);
+  bool on_track_button(GdkEventButton* event);
+  void on_track_copy();
+  void on_track_search();
 
   Gtk::MenuItem* add_item(Gtk::Menu& menu, const Glib::ustring& label,
                           const sigc::slot<void()>& slot, guint key = 0,
@@ -123,6 +126,8 @@ class MainWindow : public Gtk::Window {
   Gtk::Frame programs_frame_{"Programs"};
   Gtk::ScrolledWindow programs_scroll_;
   Gtk::TreeView programs_;
+  Gtk::Menu track_menu_;
+  Glib::ustring track_menu_title_;
   class ProgramColumns : public Gtk::TreeModel::ColumnRecord {
    public:
     ProgramColumns()

@@ -7,6 +7,7 @@
 #include "fetch.hpp"
 #include "paths.hpp"
 #include "rss.hpp"
+#include "track_menu.hpp"
 
 #include <algorithm>
 #include <cstdio>
@@ -168,6 +169,14 @@ MainWindow::MainWindow()
   programs_.set_fixed_height_mode(true);
   programs_.set_activate_on_single_click(true);
   programs_.signal_row_activated().connect(sigc::mem_fun(*this, &MainWindow::on_program_activated));
+  auto* copy_item = Gtk::manage(new Gtk::MenuItem("Copy track name"));
+  copy_item->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::on_track_copy));
+  auto* search_item = Gtk::manage(new Gtk::MenuItem("Search for track online"));
+  search_item->signal_activate().connect(sigc::mem_fun(*this, &MainWindow::on_track_search));
+  track_menu_.append(*copy_item);
+  track_menu_.append(*search_item);
+  track_menu_.show_all();
+  programs_.signal_button_press_event().connect(sigc::mem_fun(*this, &MainWindow::on_track_button));
   programs_scroll_.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
   programs_scroll_.set_propagate_natural_width(false);
   programs_scroll_.set_min_content_height(160);
@@ -1064,6 +1073,50 @@ void MainWindow::on_seek()
     return;
   const double f = seek_.get_value() / 1000.0;
   player_.seek(static_cast<gint64>(f * static_cast<double>(dur)));
+}
+
+bool MainWindow::on_track_button(GdkEventButton* event)
+{
+  if (!event || event->button != 3 || on_shows())
+    return false;
+  Gtk::TreeModel::Path path;
+  Gtk::TreeViewColumn* column = nullptr;
+  int cell_x = 0;
+  int cell_y = 0;
+  if (!programs_.get_path_at_pos(static_cast<int>(event->x), static_cast<int>(event->y), path,
+                                 column, cell_x, cell_y))
+    return false;
+  auto iter = program_store_->get_iter(path);
+  if (!iter)
+    return false;
+  const std::string title = Glib::ustring((*iter)[program_cols_.title]);
+  const std::string date = Glib::ustring((*iter)[program_cols_.date]);
+  if (!track_row_actionable(title, date))
+    return false;
+  if (auto sel = programs_.get_selection())
+    sel->select(path);
+  track_menu_title_ = title;
+  track_menu_.popup_at_pointer(reinterpret_cast<GdkEvent*>(event));
+  return true;
+}
+
+void MainWindow::on_track_copy()
+{
+  if (track_menu_title_.empty())
+    return;
+  if (auto clip = Gtk::Clipboard::get())
+    clip->set_text(track_menu_title_);
+}
+
+void MainWindow::on_track_search()
+{
+  const std::string uri = track_web_search_uri(track_menu_title_);
+  if (uri.empty())
+    return;
+  try {
+    Gio::AppInfo::launch_default_for_uri(uri);
+  } catch (const Glib::Error&) {
+  }
 }
 
 void MainWindow::on_program_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn*)

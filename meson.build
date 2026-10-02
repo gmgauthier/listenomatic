@@ -149,6 +149,14 @@ radio_search_tests = executable(
 )
 test('radio-search', radio_search_tests)
 
+track_menu_tests = executable(
+  'listenomatic-track-menu-tests',
+  'tests/test_track_menu.cpp',
+  include_directories: inc,
+  dependencies: [glib],
+)
+test('track-menu', track_menu_tests)
+
 settings_tests = executable(
   'listenomatic-settings-tests',
   'tests/test_settings.cpp',
