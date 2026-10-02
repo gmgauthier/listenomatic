@@ -119,6 +119,13 @@ show_switch_tests = executable(
 )
 test('show-switch', show_switch_tests)
 
+feed_load_tests = executable(
+  'listenomatic-feed-load-tests',
+  'tests/test_feed_load.cpp',
+  include_directories: inc,
+)
+test('feed-load', feed_load_tests)
+
 settings_tests = executable(
   'listenomatic-settings-tests',
   'tests/test_settings.cpp',
