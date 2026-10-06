@@ -54,5 +54,19 @@ int main()
     seek.arm(-1);
     CHECK(!seek.pending());
   }
+  {
+    // Live, or leaving Shows, drops a seek armed for an episode.
+    listenomatic::ResumeSeek seek;
+    seek.arm(kTarget);
+    CHECK(listenomatic::resume_attempt_for(seek, false) == 0);
+    CHECK(!seek.pending());
+    CHECK(listenomatic::resume_attempt_for(seek, true) == 0);
+    // The episode itself still retries the same target.
+    seek.arm(kTarget);
+    CHECK(listenomatic::resume_attempt_for(seek, true) == kTarget);
+    CHECK(seek.pending());
+    CHECK(listenomatic::resume_attempt_for(seek, false) == 0);
+    CHECK(!seek.pending());
+  }
   return suite_test::done("resume-seek");
 }

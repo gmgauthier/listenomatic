@@ -527,6 +527,7 @@ void MainWindow::apply_band()
   settings_.band = shows ? Band::Shows : Band::Live;
   save_progress();
   player_.stop();
+  resume_attempt_for(resume_seek_, false);
   playing_.forget();
   btn_back_.set_sensitive(shows);
   btn_fwd_.set_sensitive(shows);
@@ -565,6 +566,7 @@ void MainWindow::play_current()
     play_program(current_program_ >= 0 ? current_program_ : 0);
     return;
   }
+  resume_attempt_for(resume_seek_, false);
   const Station* st = current();
   if (!st) {
     set_status("Add a live stream first");
@@ -1024,7 +1026,7 @@ void MainWindow::on_player_title(const Glib::ustring& title)
 
 void MainWindow::try_pending_resume()
 {
-  const std::int64_t ns = resume_seek_.begin_attempt();
+  const std::int64_t ns = resume_attempt_for(resume_seek_, on_shows());
   if (ns <= 0)
     return;
   if (player_.seek(ns))

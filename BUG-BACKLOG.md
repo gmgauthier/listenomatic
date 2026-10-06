@@ -2,11 +2,20 @@
 
 Reviewed 2026-10-01 against the 1.0.1 sources.
 
-`meson test` runs `tests/test_rss.cpp` (`rss`). It checks an empty feed, a skipped item with no audio, RFC 822 and Atom dates, `1:02:03` duration, and the deliberate 80-item cap. The 8 px seek-bar margins are the shipped Clearlooks fix and are not a defect. A normal 4-digit `pubDate` fits in `format_pubdate`'s 16-byte buffer.
+`meson test` runs `tests/test_rss.cpp` (`rss`). It checks an empty feed, a skipped item with no audio, RFC 822 and Atom dates, `1:02:03` duration, and the deliberate 80-item cap. `resume-seek` checks that a seek armed for an episode is dropped when the next playback is not that episode, and that the episode itself still retries the same target. The 8 px seek-bar margins are the shipped Clearlooks fix and are not a defect. A normal 4-digit `pubDate` fits in `format_pubdate`'s 16-byte buffer.
 
 ## Open
 
 ## Closed
+
+### A pending episode seek jumps a Live stream
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/main_window.cpp` `apply_band`, `play_current`, `try_pending_resume`; `src/resume.hpp` `resume_attempt_for`
+- Trigger: Play an episode that has a saved resume, then switch to Live and play a station before that seek has landed.
+- Outcome: The seek stays armed across the band change and across `play_current`. When the live stream reaches Playing, `try_pending_resume` seeks it to the episode's position.
+- Fixed in v1.0.17: Leaving Shows drops the seek, and starting a live stream drops it again. A seek is attempted only while an episode is the playback.
 
 ### Right-click on a heard Live track does not open the menu
 
