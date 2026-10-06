@@ -88,4 +88,16 @@ class ResumeSeek {
   int attempts_ = 0;
 };
 
+/* A pending seek belongs to one episode. Playback of that episode returns the
+ * next target to try. Live, and leaving Shows, are not that episode: the seek
+ * is dropped and nothing is attempted. */
+inline std::int64_t resume_attempt_for(ResumeSeek& seek, bool episode)
+{
+  if (!episode) {
+    seek.clear();
+    return 0;
+  }
+  return seek.begin_attempt();
+}
+
 }  // namespace listenomatic
