@@ -60,6 +60,7 @@ class MainWindow : public Gtk::Window {
   void set_status(const Glib::ustring& text);
   void on_player_state(Player::State state);
   void on_player_error(const Glib::ustring& msg);
+  void on_playback_ended();
   void on_player_title(const Glib::ustring& title);
   void on_player_position(gint64 pos, gint64 dur);
   void on_seek();

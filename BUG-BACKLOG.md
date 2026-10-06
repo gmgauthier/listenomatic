@@ -2,11 +2,20 @@
 
 Reviewed 2026-10-01 against the 1.0.1 sources.
 
-`meson test` runs `tests/test_rss.cpp` (`rss`). It checks an empty feed, a skipped item with no audio, RFC 822 and Atom dates, `1:02:03` duration, and the deliberate 80-item cap. `resume-seek` checks that a seek armed for an episode is dropped when the next playback is not that episode, and that the episode itself still retries the same target. The 8 px seek-bar margins are the shipped Clearlooks fix and are not a defect. A normal 4-digit `pubDate` fits in `format_pubdate`'s 16-byte buffer.
+`meson test` runs `tests/test_rss.cpp` (`rss`). It checks an empty feed, a skipped item with no audio, RFC 822 and Atom dates, `1:02:03` duration, and the deliberate 80-item cap. `resume-seek` checks that a seek armed for an episode is dropped when the next playback is not that episode, and that the episode itself still retries the same target. `resume` checks that the end of an episode clears an earlier pause, and that an error in the middle replaces that pause. The 8 px seek-bar margins are the shipped Clearlooks fix and are not a defect. A normal 4-digit `pubDate` fits in `format_pubdate`'s 16-byte buffer.
 
 ## Open
 
 ## Closed
+
+### The end of an episode keeps the last pause
+
+- Severity: incorrect
+- Confidence: high
+- Where: `src/player.cpp` EOS and ERROR, `src/main_window.cpp` `on_playback_ended`, `src/resume.cpp` `store_ending_position`
+- Trigger: An episode with a saved pause reaches the end, or playback reports an error.
+- Outcome: Both paths call `stop()` before any save. `stop` sets the position to 0 and the state to Stopped, and `save_progress` then writes nothing. The old pause stays, so the next play seeks back into the episode.
+- Fixed in v1.0.18: The position is stored before `stop` clears it. A position at the end clears the resume. A position in the middle replaces the old pause.
 
 ### A pending episode seek jumps a Live stream
 
