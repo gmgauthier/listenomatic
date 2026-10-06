@@ -2,11 +2,20 @@
 
 Reviewed 2026-10-01 against the 1.0.1 sources.
 
-`meson test` runs `tests/test_rss.cpp` (`rss`). It checks an empty feed, a skipped item with no audio, RFC 822 and Atom dates, `1:02:03` duration, and the deliberate 80-item cap. `resume-seek` checks that a seek armed for an episode is dropped when the next playback is not that episode, and that the episode itself still retries the same target. `resume` checks that the end of an episode clears an earlier pause, and that an error in the middle replaces that pause. The 8 px seek-bar margins are the shipped Clearlooks fix and are not a defect. A normal 4-digit `pubDate` fits in `format_pubdate`'s 16-byte buffer.
+`meson test` runs `tests/test_rss.cpp` (`rss`). It checks an empty feed, a skipped item with no audio, RFC 822 and Atom dates, `1:02:03` duration, and the deliberate 80-item cap. `resume-seek` checks that a seek armed for an episode is dropped when the next playback is not that episode, and that the episode itself still retries the same target. `resume` checks that the end of an episode clears an earlier pause, and that an error in the middle replaces that pause. `show-switch` checks that removing a station while an episode is playing stores that position and then drops the tracker. The 8 px seek-bar margins are the shipped Clearlooks fix and are not a defect. A normal 4-digit `pubDate` fits in `format_pubdate`'s 16-byte buffer.
 
 ## Open
 
 ## Closed
+
+### Removing a station forgets the position
+
+- Severity: data-loss
+- Confidence: high
+- Where: `src/main_window.cpp` `on_station_remove`, `src/resume.cpp` `handoff_playing_show`
+- Trigger: An episode is playing. Station → Remove on that show.
+- Outcome: Remove stops the player and forgets the tracker without storing the position. The resume stays at the last pause, or stays empty when the episode had not been paused. The time since that pause is gone.
+- Fixed in v1.0.19: Remove stores the playing episode's position, then drops the tracker, then stops. A station that is already stopped keeps the resume it already has.
 
 ### The end of an episode keeps the last pause
 

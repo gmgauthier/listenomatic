@@ -65,6 +65,19 @@ int main()
     CHECK(s.resume_for(kNew) == 40 * kSec);
   }
   {
+    // Station → Remove while the episode is playing. The position is stored, then
+    // the tracker is dropped so the next station cannot inherit it.
+    listenomatic::Settings s;
+    s.set_resume(kOld, 80 * kSec);
+    listenomatic::ResumeTracker t;
+    t.start(kOld, 600 * kSec);
+    CHECK(listenomatic::handoff_playing_show(t, s, 150 * kSec, 600 * kSec, false));
+    CHECK(!t.active());
+    CHECK(s.resume_for(kOld) == 150 * kSec);
+    CHECK(!t.save(s, 10 * kSec, 600 * kSec));
+    CHECK(s.resume_for(kOld) == 150 * kSec);
+  }
+  {
     // Within 5 s of the end clears, using the player duration when the feed has one.
     listenomatic::Settings s;
     listenomatic::ResumeTracker t;
