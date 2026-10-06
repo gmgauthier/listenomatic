@@ -888,8 +888,11 @@ void MainWindow::on_station_remove()
     set_status("Nothing to remove");
     return;
   }
+  if (player_.state() != Player::State::Stopped)
+    player_.refresh_position();
+  handoff_playing_show(playing_, settings_, player_.position(), player_.duration(),
+                       player_.state() == Player::State::Stopped);
   player_.stop();
-  playing_.forget();
   list.erase(list.begin() + idx);
   auto& slots = presets();
   for (int i = 0; i < 6; ++i) {
