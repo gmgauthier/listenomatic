@@ -52,6 +52,7 @@ MainWindow::MainWindow()
   player_.set_volume(settings_.volume);
   player_.signal_state_changed().connect(sigc::mem_fun(*this, &MainWindow::on_player_state));
   player_.signal_error().connect(sigc::mem_fun(*this, &MainWindow::on_player_error));
+  player_.signal_ended().connect(sigc::mem_fun(*this, &MainWindow::on_playback_ended));
   player_.signal_title().connect(sigc::mem_fun(*this, &MainWindow::on_player_title));
   player_.signal_position().connect(sigc::mem_fun(*this, &MainWindow::on_player_position));
   feed_alive_ = std::make_shared<bool>(true);
@@ -1006,6 +1007,12 @@ void MainWindow::on_player_state(Player::State state)
 void MainWindow::on_player_error(const Glib::ustring& msg)
 {
   set_status(msg);
+}
+
+void MainWindow::on_playback_ended()
+{
+  if (store_ending_position(playing_, settings_, player_.position(), player_.duration()))
+    settings_.save();
 }
 
 void MainWindow::on_player_title(const Glib::ustring& title)

@@ -56,5 +56,27 @@ int main()
     CHECK(t.save(s, 597 * kSec, 1200 * kSec));
     CHECK(s.resume_for("http://example.test/b.mp3") == 597 * kSec);
   }
+  {
+    // The episode finished. The position at the end clears the earlier pause.
+    listenomatic::Settings s;
+    listenomatic::ResumeTracker t;
+    t.start("http://example.test/a.mp3", 600 * kSec);
+    s.set_resume("http://example.test/a.mp3", 80 * kSec);
+    CHECK(listenomatic::store_ending_position(t, s, 598 * kSec, 600 * kSec));
+    CHECK(t.active());
+    CHECK(s.resume_for("http://example.test/a.mp3") == 0);
+    // An error in the middle replaces that pause with the position still playing.
+    s.set_resume("http://example.test/a.mp3", 80 * kSec);
+    CHECK(listenomatic::store_ending_position(t, s, 200 * kSec, 600 * kSec));
+    CHECK(s.resume_for("http://example.test/a.mp3") == 200 * kSec);
+  }
+  {
+    // Live has no episode. Ending the stream leaves a show's resume alone.
+    listenomatic::Settings s;
+    s.set_resume("http://example.test/a.mp3", 80 * kSec);
+    listenomatic::ResumeTracker t;
+    CHECK(!listenomatic::store_ending_position(t, s, 0, 0));
+    CHECK(s.resume_for("http://example.test/a.mp3") == 80 * kSec);
+  }
   return suite_test::done("resume");
 }

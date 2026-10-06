@@ -41,6 +41,13 @@ class ResumeTracker {
 bool handoff_playing_show(ResumeTracker& playing, Settings& settings, std::int64_t pos_ns,
                           std::int64_t player_duration_ns, bool player_stopped);
 
+/* The episode reached the end, or playback failed. Store pos_ns from before
+ * stop() zeros the player. Near either end this clears the resume, so a
+ * finished episode does not keep an earlier pause. A position in the middle
+ * replaces that pause. Nothing is written when no episode is tracked. */
+bool store_ending_position(ResumeTracker& playing, Settings& settings, std::int64_t pos_ns,
+                           std::int64_t player_duration_ns);
+
 /* A resume seek often fails until the demuxer can answer it. Keep the target
  * and spend a bounded number of tries. A success or a user seek clears it. */
 class ResumeSeek {

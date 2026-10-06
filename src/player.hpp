@@ -51,6 +51,11 @@ class Player {
   {
     return signal_error_;
   }
+  /* EOS, or an error, while position() is still the playback position. */
+  sigc::signal<void>& signal_ended()
+  {
+    return signal_ended_;
+  }
   sigc::signal<void, Glib::ustring>& signal_title()
   {
     return signal_title_;
@@ -79,6 +84,7 @@ class Player {
 
   sigc::signal<void, State> signal_state_changed_;
   sigc::signal<void, Glib::ustring> signal_error_;
+  sigc::signal<void> signal_ended_;
   sigc::signal<void, Glib::ustring> signal_title_;
   sigc::signal<void, gint64, gint64> signal_position_;
 };

@@ -185,6 +185,8 @@ gboolean Player::on_bus(GstBus*, GstMessage* msg, gpointer self)
       break;
     }
     case GST_MESSAGE_EOS:
+      p->query_position();
+      p->signal_ended_.emit();
       p->stop();
       break;
     case GST_MESSAGE_ERROR: {
@@ -193,7 +195,9 @@ gboolean Player::on_bus(GstBus*, GstMessage* msg, gpointer self)
       Glib::ustring text = err ? err->message : "Playback error";
       if (err)
         g_error_free(err);
+      p->query_position();
       p->signal_error_.emit(text);
+      p->signal_ended_.emit();
       p->stop();
       break;
     }
