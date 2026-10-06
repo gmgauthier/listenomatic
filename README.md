@@ -12,7 +12,7 @@ LCOS itself: [https://github.com/BryanLunduke/LCOS](https://github.com/BryanLund
 
 ## Status
 
-**v1.0.18.** The end of an episode clears the earlier pause. A pending episode seek does not jump a Live stream. Live, Shows, Catalog, last program, saved window size, 15-minute feed refresh. The seek grip stays off +15 under Clearlooks. Headless test suite and BUG-BACKLOG.md. The `.deb` is the install. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
+**v1.0.19.** Removing a station stores the episode position. The end of an episode clears the earlier pause. A pending episode seek does not jump a Live stream. Live, Shows, Catalog, last program, saved window size, 15-minute feed refresh. The seek grip stays off +15 under Clearlooks. Headless test suite and BUG-BACKLOG.md. The `.deb` is the install. See [INSTALL.md](INSTALL.md) and [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Doc | What |
 |---|---|

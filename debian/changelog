@@ -1,3 +1,9 @@
+listenomatic (1.0.19-1) unstable; urgency=medium
+
+  * Removing a station stores the episode position.
+
+ -- Greg Gauthier <gmgauthier@protonmail.com>  Tue, 06 Oct 2026 18:19:21 +0100
+
 listenomatic (1.0.18-1) unstable; urgency=medium
 
   * The end of an episode clears the earlier pause.
