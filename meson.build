@@ -1,7 +1,7 @@
 project(
   'listenomatic',
   'cpp',
-  version: '1.0.17',
+  version: '1.0.18',
   license: 'Unlicense',
   meson_version: '>=0.56',
   default_options: [
